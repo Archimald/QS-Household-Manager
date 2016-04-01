@@ -43,6 +43,8 @@ import com.google.android.gms.plus.model.people.Person;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity
     Firebase mFirebase;
     String googleAccessToken = "";
     AuthData mAuthData;
+    boolean isAuthed = false;
+    String userId = "";
     private ConnectionResult connection_result;
     private boolean is_intent_inprogress;
     private boolean is_signInBtn_clicked;
@@ -77,6 +81,24 @@ public class MainActivity extends AppCompatActivity
         Firebase.setAndroidContext(this);
 
         mFirebase = new Firebase("https://household-manager-136.firebaseio.com");
+
+        mFirebase.addAuthStateListener(new Firebase.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(AuthData authData) {
+                if (authData != null) {
+                    isAuthed = true;
+                } else {
+                    isAuthed = false;
+                }
+            }
+        });
+
+        mAuthData = mFirebase.getAuth();
+        if (mAuthData != null) {
+            isAuthed = true;
+        } else {
+            isAuthed = false;
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -338,6 +360,7 @@ public class MainActivity extends AppCompatActivity
             google_api_client.disconnect();
             google_api_client.connect();
             changeUI(false);
+            mFirebase.unauth();
         }
     }
 
@@ -354,6 +377,7 @@ public class MainActivity extends AppCompatActivity
                             Log.d("MainActivity", "User access revoked!");
                             buildNewGoogleApiClient();
                             google_api_client.connect();
+                            mFirebase.unauth();
                             changeUI(false);
                         }
 
@@ -395,10 +419,6 @@ public class MainActivity extends AppCompatActivity
                 currentPerson = Plus.PeopleApi.getCurrentPerson(google_api_client);
                 setPersonalInfo(currentPerson);
 
-            } else {
-                Toast.makeText(getApplicationContext(),
-                        "No Personal info mention", Toast.LENGTH_LONG).show();
-
             }
 
         } catch (Exception e) {
@@ -424,7 +444,6 @@ public class MainActivity extends AppCompatActivity
         Picasso.with(getApplicationContext()).load(personPhotoUrl).resize(200, 200).into(profilePic);
 
         progress_dialog.dismiss();
-        Toast.makeText(this, "Person information is shown!", Toast.LENGTH_LONG).show();
     }
 
     /*
@@ -452,6 +471,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void authorizeFireBaseUser(String googleAccessToken) {
+
         mFirebase.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
             @Override
             public void onAuthenticated(AuthData authData) {
@@ -459,6 +479,14 @@ public class MainActivity extends AppCompatActivity
                 mAuthData = authData;
                 Log.d(TAG, mAuthData.getProvider());
                 Log.d(TAG, mAuthData.getUid());
+                userId = mAuthData.getUid();
+
+                Map<String, String> map = new HashMap<String, String>();
+                map.put("provider", authData.getProvider());
+                if (authData.getProviderData().containsKey("displayName")) {
+                    map.put("displayName", authData.getProviderData().get("displayName").toString());
+                }
+                mFirebase.child("users").child(authData.getUid()).setValue(map);
             }
 
             @Override
@@ -475,11 +503,13 @@ public class MainActivity extends AppCompatActivity
             String accountName = params[0];
             String scopes = "oauth2:"
                     + Scopes.PLUS_LOGIN + " "
-                    + Scopes.PROFILE + " https://www.googleapis.com/auth/plus.profile.emails.read";
+                    + Scopes.PROFILE;
 
             try {
-                googleAccessToken = GoogleAuthUtil.getToken(getApplicationContext(), accountName, scopes);
-                authorizeFireBaseUser(googleAccessToken);
+                if (!isAuthed) {
+                    googleAccessToken = GoogleAuthUtil.getToken(getApplicationContext(), accountName, scopes);
+                    authorizeFireBaseUser(googleAccessToken);
+                }
             } catch (IOException e) {
                 Log.e(TAG, e.getMessage());
             } catch (UserRecoverableAuthException e) {
