@@ -1,0 +1,61 @@
+{
+  "project_info": {
+    "project_id": "household-manager-1268",
+    "project_number": "697149179812",
+    "name": "Household Manager"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:697149179812:android:6d6f5616a9c7db37",
+        "client_id": "android:edu.augustana.quadsquad.householdmanager",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "edu.augustana.quadsquad.householdmanager",
+          "certificate_hash": []
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "697149179812-9p0nn4i4lsfadk0cr094bjr69reg6fli.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.augustana.quadsquad.householdmanager",
+            "certificate_hash": "2E8F29C5E914C3AC733FF48DCBAD1B02C10DA5BE"
+          }
+        },
+        {
+          "client_id": "697149179812-g9bjdpdoo914tnjtl052lu9hufkuqcn5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 2,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "697149179812-g9bjdpdoo914tnjtl052lu9hufkuqcn5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "google_signin_service": {
+          "status": 2
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
