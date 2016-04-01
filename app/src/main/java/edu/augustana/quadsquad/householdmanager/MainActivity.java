@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -52,9 +54,9 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
 
     private static final int SIGN_IN_CODE = 0;
-    private static final int PROFILE_PIC_SIZE = 120;
     private static final String TAG = "RetrieveAccessToken";
     private static final int REQ_SIGN_IN_REQUIRED = 136;
+    final int version = Build.VERSION.SDK_INT;
     GoogleApiClient google_api_client;
     GoogleApiAvailability google_api_availability;
     SignInButton signIn_btn;
@@ -85,20 +87,12 @@ public class MainActivity extends AppCompatActivity
         mFirebase.addAuthStateListener(new Firebase.AuthStateListener() {
             @Override
             public void onAuthStateChanged(AuthData authData) {
-                if (authData != null) {
-                    isAuthed = true;
-                } else {
-                    isAuthed = false;
-                }
+                isAuthed = authData != null;
             }
         });
 
         mAuthData = mFirebase.getAuth();
-        if (mAuthData != null) {
-            isAuthed = true;
-        } else {
-            isAuthed = false;
-        }
+        isAuthed = mAuthData != null;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -118,10 +112,12 @@ public class MainActivity extends AppCompatActivity
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        assert drawer != null;
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        assert navigationView != null;
         navigationView.setNavigationItemSelectedListener(this);
 
         View headerLayout = navigationView.getHeaderView(0);
@@ -145,6 +141,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        assert drawer != null;
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -158,7 +155,7 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.main, menu);
         Drawable garbageIcon = menu.getItem(0).getIcon();
         garbageIcon = DrawableCompat.wrap(garbageIcon);
-        DrawableCompat.setTint(garbageIcon, getResources().getColor(R.color.colorIcons));
+        DrawableCompat.setTint(garbageIcon, ContextCompat.getColor(getApplicationContext(), R.color.colorIcons));
         return true;
     }
 
@@ -196,7 +193,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        if (drawer != null) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
         return true;
     }
 
@@ -263,6 +262,7 @@ public class MainActivity extends AppCompatActivity
     private void customizeSignBtn() {
 
         signIn_btn = (SignInButton) findViewById(R.id.sign_in_button);
+        assert signIn_btn != null;
         signIn_btn.setSize(SignInButton.SIZE_STANDARD);
         signIn_btn.setScopes(new Scope[]{Plus.SCOPE_PLUS_LOGIN});
 
