@@ -89,6 +89,9 @@ public class MainActivity extends AppCompatActivity
             public void onAuthStateChanged(AuthData authData) {
                 isAuthed = authData != null;
                 Log.d("IsAuthed", String.valueOf(isAuthed));
+                if (acct != null && !isAuthed) {
+                    new GetAuthToken().execute(userId);
+                }
             }
         });
 
@@ -138,6 +141,17 @@ public class MainActivity extends AppCompatActivity
         customizeSignInBtn();
         setBtnClickListeners();
 
+
+        Log.d("Activity data", String.valueOf(acct != null));
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+
+
+        // Always call the superclass so it can save the view hierarchy state
+        super.onSaveInstanceState(savedInstanceState);
     }
 
 
