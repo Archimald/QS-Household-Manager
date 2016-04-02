@@ -26,4 +26,6 @@
     <string name="disconnect">Disconnect</string>
 
     <string name="server_client_id">697149179812-g9bjdpdoo914tnjtl052lu9hufkuqcn5.apps.googleusercontent.com</string>
+    <string name="null_string">NULL</string>
+    <string name="dummy_email">quad@squad.com</string>
 </resources>

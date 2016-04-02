@@ -20,6 +20,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.firebase.client.AuthData;
@@ -45,6 +47,8 @@ import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+import static edu.augustana.quadsquad.householdmanager.R.id.sign_in_button;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
@@ -59,6 +63,9 @@ public class MainActivity extends AppCompatActivity
     CircleImageView profilePic;
     TextView user_name;
     TextView gemail_id;
+    Button signOutBtn;
+    Button discBtn;
+    LinearLayout signOutDisc;
     Firebase mFirebase;
     String userIdToken = "";
     AuthData mAuthData;
@@ -120,6 +127,10 @@ public class MainActivity extends AppCompatActivity
         profilePic = (CircleImageView) headerLayout.findViewById(R.id.profile_pic);
         user_name = (TextView) headerLayout.findViewById(R.id.user_name);
         gemail_id = (TextView) headerLayout.findViewById(R.id.textview_email);
+        signOutBtn = (Button) findViewById(R.id.sign_out_button);
+        discBtn = (Button) findViewById(R.id.disconnect_button);
+        signOutDisc = (LinearLayout) findViewById(R.id.sign_out_and_disconnect);
+        signInButton = (SignInButton) findViewById(sign_in_button);
         updateUI(acct != null);
 
 
@@ -220,7 +231,7 @@ public class MainActivity extends AppCompatActivity
         // may be displayed when only basic profile is requested. Try adding the
         // Scopes.PLUS_LOGIN scope to the GoogleSignInOptions to see the
         // difference.
-        signInButton = (SignInButton) findViewById(R.id.sign_in_button);
+
         if (signInButton != null) {
             signInButton.setSize(SignInButton.SIZE_STANDARD);
         }
@@ -239,6 +250,7 @@ public class MainActivity extends AppCompatActivity
                     public void onResult(Status status) {
                         acct = null;
                         updateUI(!status.isSuccess());
+                        mFirebase.unauth();
                     }
                 });
     }
@@ -250,6 +262,7 @@ public class MainActivity extends AppCompatActivity
                     public void onResult(Status status) {
                         acct = null;
                         updateUI(!status.isSuccess());
+                        mFirebase.unauth();
                     }
                 });
     }
@@ -260,14 +273,14 @@ public class MainActivity extends AppCompatActivity
     private void setBtnClickListeners() {
         // Button listeners
         signInButton.setOnClickListener(this);
-        findViewById(R.id.sign_out_button).setOnClickListener(this);
-        findViewById(R.id.disconnect_button).setOnClickListener(this);
+        signOutBtn.setOnClickListener(this);
+        discBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.sign_in_button:
+            case sign_in_button:
                 signIn();
                 break;
             case R.id.sign_out_button:
@@ -288,18 +301,18 @@ public class MainActivity extends AppCompatActivity
      */
     private void updateUI(boolean signedIn) {
         if (signedIn) {
-            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
+            signInButton.setVisibility(View.GONE);
+            signOutDisc.setVisibility(View.VISIBLE);
 
             setPersonalInfo(acct);
 
         } else {
 
-            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
-            findViewById(R.id.sign_out_and_disconnect).setVisibility(View.GONE);
+            signInButton.setVisibility(View.VISIBLE);
+            signOutDisc.setVisibility(View.GONE);
 
-            user_name.setText("NULL");
-            gemail_id.setText("quad@squad.com");
+            user_name.setText(R.string.null_string);
+            gemail_id.setText(R.string.dummy_email);
             profilePic.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_def_app_icon));
 
         }
@@ -318,13 +331,16 @@ public class MainActivity extends AppCompatActivity
 
         String personName = acct.getDisplayName();
 
-        String personPhotoUrl = acct.getPhotoUrl().toString();
+        if (acct.getPhotoUrl() != null) {
+            String personPhotoUrl = acct.getPhotoUrl().toString();
+            Picasso.with(getApplicationContext()).load(personPhotoUrl).resize(200, 200).into(profilePic);
+        }
         String email = acct.getEmail();
 
         user_name.setText(personName);
 
         gemail_id.setText(email);
-        Picasso.with(getApplicationContext()).load(personPhotoUrl).resize(200, 200).into(profilePic);
+
     }
 
     /*
@@ -349,10 +365,13 @@ public class MainActivity extends AppCompatActivity
             // Signed in successfully, show authenticated UI.
             acct = result.getSignInAccount();
 
-            email_address = acct.getEmail();
-            updateUI(true);
+            if (acct != null) {
+                email_address = acct.getEmail();
+                updateUI(true);
 
-            new GetAuthToken().execute(userId);
+                new GetAuthToken().execute(userId);
+            }
+
 
 
         } else {
@@ -373,7 +392,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, mAuthData.getUid());
                 userId = mAuthData.getUid();
 
-                Map<String, String> map = new HashMap<String, String>();
+                Map<String, String> map = new HashMap<>();
                 map.put("provider", authData.getProvider());
                 if (authData.getProviderData().containsKey("displayName")) {
                     map.put("displayName", authData.getProviderData().get("displayName").toString());
