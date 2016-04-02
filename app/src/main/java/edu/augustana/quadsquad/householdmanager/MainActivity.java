@@ -1,14 +1,11 @@
 package edu.augustana.quadsquad.householdmanager;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -24,24 +21,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableAuthException;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.plus.Plus;
-import com.google.android.gms.plus.model.people.Person;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -51,29 +46,27 @@ import java.util.Map;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final int SIGN_IN_CODE = 0;
+
     private static final String TAG = "RetrieveAccessToken";
     private static final int REQ_SIGN_IN_REQUIRED = 136;
     final int version = Build.VERSION.SDK_INT;
+    final int RC_SIGN_IN = 1;
     GoogleApiClient google_api_client;
     GoogleApiAvailability google_api_availability;
-    SignInButton signIn_btn;
-    ProgressDialog progress_dialog;
+    SignInButton signInButton;
     CircleImageView profilePic;
     TextView user_name;
     TextView gemail_id;
-    Person currentPerson;
     Firebase mFirebase;
-    String googleAccessToken = "";
+    String userIdToken = "";
     AuthData mAuthData;
     boolean isAuthed = false;
     String userId = "";
-    private ConnectionResult connection_result;
-    private boolean is_intent_inprogress;
-    private boolean is_signInBtn_clicked;
-    private int request_code;
+    GoogleSignInOptions gso;
+    GoogleSignInAccount acct;
+    String email_address;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +81,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAuthStateChanged(AuthData authData) {
                 isAuthed = authData != null;
+                Log.d("IsAuthed", String.valueOf(isAuthed));
             }
         });
 
@@ -126,13 +120,11 @@ public class MainActivity extends AppCompatActivity
         profilePic = (CircleImageView) headerLayout.findViewById(R.id.profile_pic);
         user_name = (TextView) headerLayout.findViewById(R.id.user_name);
         gemail_id = (TextView) headerLayout.findViewById(R.id.textview_email);
-
-        progress_dialog = new ProgressDialog(this);
-        progress_dialog.setMessage("Signing in....");
+        updateUI(acct != null);
 
 
         buildNewGoogleApiClient();
-        customizeSignBtn();
+        customizeSignInBtn();
         setBtnClickListeners();
 
     }
@@ -206,66 +198,60 @@ public class MainActivity extends AppCompatActivity
 
     private void buildNewGoogleApiClient() {
 
-        google_api_client = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Plus.API, Plus.PlusOptions.builder().build())
-                .addScope(Plus.SCOPE_PLUS_LOGIN)
+        // Configure sign-in to request the user's ID, email address, and basic
+        // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
+        gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestServerAuthCode(getString(R.string.server_client_id))
                 .build();
-    }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        is_signInBtn_clicked = false;
-        // Get user's information and set it into the layout
-        getProfileInfo();
-        // Update the UI after signin
-        changeUI(true);
-        new RetrieveTokenTask().execute(Plus.AccountApi.getAccountName(google_api_client));
-
+        google_api_client = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
     }
 
-    @Override
-    public void onConnectionSuspended(int i) {
-        google_api_client.connect();
-        changeUI(false);
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult result) {
-        if (!result.hasResolution()) {
-            google_api_availability.getErrorDialog(this, result.getErrorCode(), request_code).show();
-            return;
+    private void customizeSignInBtn() {
+        // Customize sign-in button. The sign-in button can be displayed in
+        // multiple sizes and color schemes. It can also be contextually
+        // rendered based on the requested scopes. For example. a red button may
+        // be displayed when Google+ scopes are requested, but a white button
+        // may be displayed when only basic profile is requested. Try adding the
+        // Scopes.PLUS_LOGIN scope to the GoogleSignInOptions to see the
+        // difference.
+        signInButton = (SignInButton) findViewById(R.id.sign_in_button);
+        if (signInButton != null) {
+            signInButton.setSize(SignInButton.SIZE_STANDARD);
         }
-
-        if (!is_intent_inprogress) {
-
-            connection_result = result;
-
-            if (is_signInBtn_clicked) {
-
-                resolveSignInError();
-            }
-        }
-
+        signInButton.setScopes(gso.getScopeArray());
     }
 
-    /*Customize sign-in button. The sign-in button can be displayed in
-  multiple sizes and color schemes. It can also be contextually
-  rendered based on the requested scopes. For example. a red button may
-  be displayed when Google+ scopes are requested, but a white button
-  may be displayed when only basic profile is requested. Try adding the
-  Plus.SCOPE_PLUS_LOGIN scope to see the  difference.
-*/
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(google_api_client);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
 
-    private void customizeSignBtn() {
+    private void signOut() {
+        Auth.GoogleSignInApi.signOut(google_api_client).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        acct = null;
+                        updateUI(!status.isSuccess());
+                    }
+                });
+    }
 
-        signIn_btn = (SignInButton) findViewById(R.id.sign_in_button);
-        assert signIn_btn != null;
-        signIn_btn.setSize(SignInButton.SIZE_STANDARD);
-        signIn_btn.setScopes(new Scope[]{Plus.SCOPE_PLUS_LOGIN});
-
+    private void revokeAccess() {
+        Auth.GoogleSignInApi.revokeAccess(google_api_client).setResultCallback(
+                new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(Status status) {
+                        acct = null;
+                        updateUI(!status.isSuccess());
+                    }
+                });
     }
 
     /*
@@ -273,7 +259,7 @@ public class MainActivity extends AppCompatActivity
      */
     private void setBtnClickListeners() {
         // Button listeners
-        signIn_btn.setOnClickListener(this);
+        signInButton.setOnClickListener(this);
         findViewById(R.id.sign_out_button).setOnClickListener(this);
         findViewById(R.id.disconnect_button).setOnClickListener(this);
     }
@@ -282,118 +268,30 @@ public class MainActivity extends AppCompatActivity
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sign_in_button:
-                Toast.makeText(this, "start sign process", Toast.LENGTH_SHORT).show();
-                gPlusSignIn();
+                signIn();
                 break;
             case R.id.sign_out_button:
-                Toast.makeText(this, "Sign Out from G+", Toast.LENGTH_LONG).show();
-                gPlusSignOut();
+                signOut();
 
                 break;
             case R.id.disconnect_button:
-                Toast.makeText(this, "Revoke Access from G+", Toast.LENGTH_LONG).show();
-                gPlusRevokeAccess();
+                revokeAccess();
 
                 break;
         }
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        // Add this line to initiate connection
-        google_api_client.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (google_api_client.isConnected()) {
-            google_api_client.disconnect();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (google_api_client.isConnected()) {
-            google_api_client.connect();
-        }
-    }
-
-    /**
-     * Sign-in into the Google + account
-     */
-    private void gPlusSignIn() {
-        if (!google_api_client.isConnecting()) {
-            Log.d("user connected", "connected");
-            is_signInBtn_clicked = true;
-            progress_dialog.show();
-            resolveSignInError();
-
-        }
-    }
-
-    /**
-     * Method to resolve any signin errors
-     */
-    private void resolveSignInError() {
-        if (connection_result.hasResolution()) {
-            try {
-                is_intent_inprogress = true;
-                connection_result.startResolutionForResult(this, SIGN_IN_CODE);
-                Log.d("resolve error", "sign in error resolved");
-            } catch (IntentSender.SendIntentException e) {
-                is_intent_inprogress = false;
-                google_api_client.connect();
-            }
-        }
-    }
-
-    /**
-     * Sign-out from Google+ account
-     */
-    private void gPlusSignOut() {
-        if (google_api_client.isConnected()) {
-            Plus.AccountApi.clearDefaultAccount(google_api_client);
-            google_api_client.disconnect();
-            google_api_client.connect();
-            changeUI(false);
-            mFirebase.unauth();
-        }
-    }
-
-    /**
-     * Revoking access from Google+ account
-     */
-    private void gPlusRevokeAccess() {
-        if (google_api_client.isConnected()) {
-            Plus.AccountApi.clearDefaultAccount(google_api_client);
-            Plus.AccountApi.revokeAccessAndDisconnect(google_api_client)
-                    .setResultCallback(new ResultCallback<Status>() {
-                        @Override
-                        public void onResult(Status arg0) {
-                            Log.d("MainActivity", "User access revoked!");
-                            buildNewGoogleApiClient();
-                            google_api_client.connect();
-                            mFirebase.unauth();
-                            changeUI(false);
-                        }
-
-                    });
-        }
-    }
 
     /*
      Show and hide of the Views according to the user login status
      */
-    private void changeUI(boolean signedIn) {
+    private void updateUI(boolean signedIn) {
         if (signedIn) {
             findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             findViewById(R.id.sign_out_and_disconnect).setVisibility(View.VISIBLE);
 
-            setPersonalInfo(currentPerson);
+            setPersonalInfo(acct);
 
         } else {
 
@@ -408,42 +306,25 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    /**
-     * get user's information name, email, profile pic,Date of birth,tag line and about me
-     */
-    private void getProfileInfo() {
 
-        try {
 
-            if (Plus.PeopleApi.getCurrentPerson(google_api_client) != null) {
-                currentPerson = Plus.PeopleApi.getCurrentPerson(google_api_client);
-                setPersonalInfo(currentPerson);
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
 
     /*
     set the User information into the views defined in the layout
     */
 
-    private void setPersonalInfo(Person currentPerson) {
+    private void setPersonalInfo(GoogleSignInAccount account) {
 
 
-        String personName = currentPerson.getDisplayName();
-        String personPhotoUrl = currentPerson.getImage().getUrl();
-        String email = Plus.AccountApi.getAccountName(google_api_client);
+        String personName = acct.getDisplayName();
+
+        String personPhotoUrl = acct.getPhotoUrl().toString();
+        String email = acct.getEmail();
 
         user_name.setText(personName);
 
         gemail_id.setText(email);
         Picasso.with(getApplicationContext()).load(personPhotoUrl).resize(200, 200).into(profilePic);
-
-        progress_dialog.dismiss();
     }
 
     /*
@@ -451,24 +332,35 @@ public class MainActivity extends AppCompatActivity
 
      */
     @Override
-    protected void onActivityResult(int requestCode, int responseCode,
-                                    Intent intent) {
-        // Check which request we're responding to
-        if (requestCode == SIGN_IN_CODE) {
-            request_code = requestCode;
-            if (responseCode != RESULT_OK) {
-                is_signInBtn_clicked = false;
-                progress_dialog.dismiss();
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-            }
-
-            is_intent_inprogress = false;
-
-            if (!google_api_client.isConnecting()) {
-                google_api_client.connect();
-            }
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result, data);
         }
     }
+
+    private void handleSignInResult(GoogleSignInResult result, Intent data) {
+        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        if (result.isSuccess()) {
+            // Signed in successfully, show authenticated UI.
+            acct = result.getSignInAccount();
+
+            email_address = acct.getEmail();
+            updateUI(true);
+
+            new GetAuthToken().execute(userId);
+
+
+        } else {
+            // Signed out, show unauthenticated UI.
+            updateUI(false);
+        }
+    }
+
 
     private void authorizeFireBaseUser(String googleAccessToken) {
 
@@ -491,10 +383,17 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onAuthenticationError(FirebaseError firebaseError) {
-                Log.e(TAG, firebaseError.getDetails());
+                Log.e("Auth error", firebaseError.getDetails());
             }
         });
     }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    /*
 
     private class RetrieveTokenTask extends AsyncTask<String, Void, String> {
 
@@ -521,8 +420,32 @@ public class MainActivity extends AppCompatActivity
 
             return googleAccessToken;
 
+        }*/
+
+    public class GetAuthToken extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String scopes = "oauth2:profile email";
+            String token = null;
+
+            try {
+                token = GoogleAuthUtil.getToken(getApplicationContext(), email_address, scopes);
+            } catch (IOException | GoogleAuthException e) {
+                e.printStackTrace();
+            }
+            return token;
         }
 
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            userIdToken = s;
+            Log.d(TAG, userIdToken);
 
+            authorizeFireBaseUser(userIdToken);
+        }
     }
+
+
 }
+

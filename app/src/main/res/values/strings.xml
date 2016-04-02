@@ -24,4 +24,6 @@
     <!-- Button labels -->
     <string name="sign_out">Sign Out</string>
     <string name="disconnect">Disconnect</string>
+
+    <string name="server_client_id">697149179812-g9bjdpdoo914tnjtl052lu9hufkuqcn5.apps.googleusercontent.com</string>
 </resources>
