@@ -3,7 +3,6 @@ package edu.augustana.quadsquad.householdmanager;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -34,7 +33,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -54,11 +52,10 @@ public class MainActivity extends AppCompatActivity
 
 
     private static final String TAG = "RetrieveAccessToken";
-    private static final int REQ_SIGN_IN_REQUIRED = 136;
-    final int version = Build.VERSION.SDK_INT;
+
     final int RC_SIGN_IN = 1;
     GoogleApiClient google_api_client;
-    GoogleApiAvailability google_api_availability;
+
     SignInButton signInButton;
     CircleImageView profilePic;
     TextView user_name;
@@ -66,13 +63,16 @@ public class MainActivity extends AppCompatActivity
     Button signOutBtn;
     Button discBtn;
     LinearLayout signOutDisc;
+
     Firebase mFirebase;
-    String userIdToken = "";
+
     AuthData mAuthData;
-    boolean isAuthed = false;
-    String userId = "";
+    boolean isAuthed;
+    String firebaseUid = "";
+
     GoogleSignInOptions gso;
     GoogleSignInAccount acct;
+
     String email_address;
 
     @Override
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity
                 isAuthed = authData != null;
                 Log.d("IsAuthed", String.valueOf(isAuthed));
                 if (acct != null && !isAuthed) {
-                    new GetAuthToken().execute(userId);
+                    new GetAuthToken().execute(firebaseUid);
                 }
             }
         });
@@ -248,20 +248,17 @@ public class MainActivity extends AppCompatActivity
 
         if (signInButton != null) {
             signInButton.setSize(SignInButton.SIZE_STANDARD);
+            signInButton.setScopes(gso.getScopeArray());
         }
-        signInButton.setScopes(gso.getScopeArray());
+
     }
 
-    private void signIn() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(google_api_client);
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
 
     private void signOut() {
         Auth.GoogleSignInApi.signOut(google_api_client).setResultCallback(
                 new ResultCallback<Status>() {
                     @Override
-                    public void onResult(Status status) {
+                    public void onResult(@NonNull Status status) {
                         acct = null;
                         updateUI(!status.isSuccess());
                         mFirebase.unauth();
@@ -273,12 +270,51 @@ public class MainActivity extends AppCompatActivity
         Auth.GoogleSignInApi.revokeAccess(google_api_client).setResultCallback(
                 new ResultCallback<Status>() {
                     @Override
-                    public void onResult(Status status) {
+                    public void onResult(@NonNull Status status) {
                         acct = null;
                         updateUI(!status.isSuccess());
                         mFirebase.unauth();
                     }
                 });
+    }
+
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(google_api_client);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    /*
+      Will receive the activity result and check which request we are responding to
+
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode,
+                                    Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
+    }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        if (result.isSuccess()) {
+            // Signed in successfully, show authenticated UI.
+            acct = result.getSignInAccount();
+
+            if (acct != null) {
+                email_address = acct.getEmail();
+                updateUI(true);
+
+                new GetAuthToken().execute(firebaseUid);
+            }
+        } else {
+            // Signed out, show unauthenticated UI.
+            updateUI(false);
+        }
     }
 
     /*
@@ -309,7 +345,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-
     /*
      Show and hide of the Views according to the user login status
      */
@@ -318,7 +353,7 @@ public class MainActivity extends AppCompatActivity
             signInButton.setVisibility(View.GONE);
             signOutDisc.setVisibility(View.VISIBLE);
 
-            setPersonalInfo(acct);
+            setPersonalInfo();
 
         } else {
 
@@ -332,15 +367,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
-
-
-
-    /*
-    set the User information into the views defined in the layout
-    */
-
-    private void setPersonalInfo(GoogleSignInAccount account) {
+    private void setPersonalInfo() {
 
 
         String personName = acct.getDisplayName();
@@ -357,43 +384,13 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+
+
+
+
     /*
-      Will receive the activity result and check which request we are responding to
-
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            handleSignInResult(result, data);
-        }
-    }
-
-    private void handleSignInResult(GoogleSignInResult result, Intent data) {
-        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
-        if (result.isSuccess()) {
-            // Signed in successfully, show authenticated UI.
-            acct = result.getSignInAccount();
-
-            if (acct != null) {
-                email_address = acct.getEmail();
-                updateUI(true);
-
-                new GetAuthToken().execute(userId);
-            }
-
-
-
-        } else {
-            // Signed out, show unauthenticated UI.
-            updateUI(false);
-        }
-    }
-
+    set the User information into the views defined in the layout
+    */
 
     private void authorizeFireBaseUser(String googleAccessToken) {
 
@@ -404,7 +401,7 @@ public class MainActivity extends AppCompatActivity
                 mAuthData = authData;
                 Log.d(TAG, mAuthData.getProvider());
                 Log.d(TAG, mAuthData.getUid());
-                userId = mAuthData.getUid();
+                firebaseUid = mAuthData.getUid();
 
                 Map<String, String> map = new HashMap<>();
                 map.put("provider", authData.getProvider());
@@ -424,6 +421,28 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    public class GetAuthToken extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String scopes = "oauth2:profile email";
+            String token = null;
+
+            try {
+                token = GoogleAuthUtil.getToken(getApplicationContext(), email_address, scopes);
+            } catch (IOException | GoogleAuthException e) {
+                e.printStackTrace();
+            }
+            return token;
+        }
+
+        @Override
+        protected void onPostExecute(String userIdToken) {
+            super.onPostExecute(userIdToken);
+            Log.d(TAG, userIdToken);
+            authorizeFireBaseUser(userIdToken);
+        }
     }
 
     /*
@@ -454,30 +473,6 @@ public class MainActivity extends AppCompatActivity
             return googleAccessToken;
 
         }*/
-
-    public class GetAuthToken extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            String scopes = "oauth2:profile email";
-            String token = null;
-
-            try {
-                token = GoogleAuthUtil.getToken(getApplicationContext(), email_address, scopes);
-            } catch (IOException | GoogleAuthException e) {
-                e.printStackTrace();
-            }
-            return token;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            userIdToken = s;
-            Log.d(TAG, userIdToken);
-
-            authorizeFireBaseUser(userIdToken);
-        }
-    }
 
 
 }
