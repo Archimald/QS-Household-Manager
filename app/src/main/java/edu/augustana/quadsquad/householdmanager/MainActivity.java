@@ -229,6 +229,7 @@ public class MainActivity extends AppCompatActivity
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestServerAuthCode(getString(R.string.server_client_id))
+                .requestIdToken(getString(R.string.server_client_id))
                 .build();
 
         google_api_client = new GoogleApiClient.Builder(this)
@@ -240,15 +241,7 @@ public class MainActivity extends AppCompatActivity
 
         if (pendingResult.isDone()) {
             handleSignInResult(pendingResult.get());
-        } else {
-            pendingResult.setResultCallback(new ResultCallback<GoogleSignInResult>() {
-                @Override
-                public void onResult(@NonNull GoogleSignInResult result) {
-                    handleSignInResult(result);
-                }
-            });
         }
-
     }
 
     private void customizeSignInBtn() {
@@ -318,6 +311,12 @@ public class MainActivity extends AppCompatActivity
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             acct = result.getSignInAccount();
+            String idToken = acct.getIdToken();
+            if (idToken != null) {
+                Log.d("idToken: ", idToken);
+                SaveSharedPreference.setGoogleIdToken(getApplicationContext(), idToken);
+            }
+
 
             if (acct != null) {
                 email_address = acct.getEmail();
@@ -416,6 +415,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, mAuthData.getProvider());
                 Log.d(TAG, mAuthData.getUid());
                 firebaseUid = mAuthData.getUid();
+                SaveSharedPreference.setFirebaseUid(getApplicationContext(), firebaseUid);
 
                 Map<String, String> map = new HashMap<>();
                 map.put("provider", authData.getProvider());
@@ -455,6 +455,7 @@ public class MainActivity extends AppCompatActivity
         protected void onPostExecute(String userIdToken) {
             super.onPostExecute(userIdToken);
             Log.d(TAG, userIdToken);
+            SaveSharedPreference.setGoogleOAuthToken(getApplicationContext(), userIdToken);
             authorizeFireBaseUser(userIdToken);
         }
     }
