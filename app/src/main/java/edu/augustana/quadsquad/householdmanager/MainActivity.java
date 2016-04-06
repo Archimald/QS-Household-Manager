@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity
         String photoURL = SaveSharedPreference.getGooglePictureUrl(ctx);
 
         if (!photoURL.equals("")) {
-            Picasso.with(getApplicationContext()).load(photoURL).resize(200, 200).into(profilePic);
+            Picasso.with(getApplicationContext()).load(photoURL).fit().into(profilePic);
         }
         user_name.setText(displayName);
         gemail_id.setText(email);

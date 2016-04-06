@@ -20,7 +20,7 @@
             android:title="Calendar" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="Options">
         <menu>
             <item
                 android:id="@+id/nav_settings"
