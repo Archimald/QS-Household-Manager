@@ -3,13 +3,19 @@ package edu.augustana.quadsquad.householdmanager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
+
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 
 /**
  * Created by Luke Currie on 4/3/2016.
  */
-public class SaveSharedPreference
-{
+public class SaveSharedPreference {
     static final String PREF_GOOGLE_ID_TOKEN = "SignIn Account Id Token";
+    static final String PREF_GOOGLE_DISPLAY_NAME = "SignIn Account Display Name";
+    static final String PREF_GOOGLE_EMAIL = "SignIn Account Email";
+    static final String PREF_GOOGLE_PICTURE_URL = "SignIn Account Picture";
+
     static final String PREF_FIREBASE_UID = "Firebase UID";
     static final String PREF_GOOGLE_OAUTH_TOKEN = "Google OAuth Token";
     static final String PREF_IS_LOGGED_IN = "Is Logged In";
@@ -18,16 +24,20 @@ public class SaveSharedPreference
         return PreferenceManager.getDefaultSharedPreferences(ctx);
     }
 
-    public static void setGoogleIdToken(Context ctx, String idToken)
-    {
+    public static void setGoogleAccount(Context ctx, GoogleSignInAccount acct) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
-        editor.putString(PREF_GOOGLE_ID_TOKEN, idToken);
+        editor.putString(PREF_GOOGLE_ID_TOKEN, acct.getIdToken());
+        editor.putString(PREF_GOOGLE_DISPLAY_NAME, acct.getDisplayName());
+        editor.putString(PREF_GOOGLE_EMAIL, acct.getEmail());
+        if (acct.getPhotoUrl() != null) {
+            editor.putString(PREF_GOOGLE_PICTURE_URL, acct.getPhotoUrl().toString());
+        }
         editor.apply();
     }
 
-    public static void setFirebaseUid(Context ctx, String uid)
-    {
+    public static void setFirebaseUid(Context ctx, String uid) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        Log.d(PREF_FIREBASE_UID, uid);
         editor.putString(PREF_FIREBASE_UID, uid);
         editor.apply();
     }
@@ -52,6 +62,18 @@ public class SaveSharedPreference
         return getSharedPreferences(ctx).getString(PREF_GOOGLE_ID_TOKEN, "");
     }
 
+    public static String getGoogleEmail(Context ctx) {
+        return getSharedPreferences(ctx).getString(PREF_GOOGLE_EMAIL, "");
+    }
+
+    public static String getGooglePictureUrl(Context ctx) {
+        return getSharedPreferences(ctx).getString(PREF_GOOGLE_PICTURE_URL, "");
+    }
+
+    public static String getGoogleDisplayName(Context ctx) {
+        return getSharedPreferences(ctx).getString(PREF_GOOGLE_DISPLAY_NAME, "");
+    }
+
     public static String getGoogleOauthToken(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_GOOGLE_OAUTH_TOKEN, "");
     }
@@ -60,11 +82,10 @@ public class SaveSharedPreference
         return getSharedPreferences(ctx).getBoolean(PREF_IS_LOGGED_IN, false);
     }
 
-    public static void clearUserName(Context ctx)
-    {
+    /*public static void clearUserName(Context ctx) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.clear(); // clear all stored data
         editor.apply();
-    }
+    }*/
 
 }

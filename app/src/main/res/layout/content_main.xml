@@ -12,34 +12,4 @@
     tools:context="edu.augustana.quadsquad.householdmanager.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/sign_in_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true" />
-
-    <LinearLayout
-        android:id="@+id/sign_out_and_disconnect"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/sign_in_button"
-        android:layout_centerHorizontal="true"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/sign_out_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-
-            android:text="@string/sign_out" />
-
-        <Button
-            android:id="@+id/disconnect_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:text="@string/disconnect" />
-
-    </LinearLayout>
 </RelativeLayout>

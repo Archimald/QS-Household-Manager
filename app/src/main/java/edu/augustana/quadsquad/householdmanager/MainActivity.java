@@ -1,8 +1,8 @@
 package edu.augustana.quadsquad.householdmanager;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -19,62 +19,38 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
-import com.google.android.gms.auth.GoogleAuthException;
-import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static edu.augustana.quadsquad.householdmanager.R.id.sign_in_button;
-
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener, GoogleApiClient.OnConnectionFailedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
 
 
-    private static final String TAG = "RetrieveAccessToken";
-
-    final int RC_SIGN_IN = 1;
+    private static final String TAG = "Main Activity";
     GoogleApiClient google_api_client;
+    GoogleSignInOptions gso;
 
-    SignInButton signInButton;
+
     CircleImageView profilePic;
     TextView user_name;
     TextView gemail_id;
-    Button signOutBtn;
-    Button discBtn;
-    LinearLayout signOutDisc;
 
     Firebase mFirebase;
-
-    AuthData mAuthData;
-    boolean isAuthed;
-    String firebaseUid = "";
-
-    GoogleSignInOptions gso;
-    GoogleSignInAccount acct;
-
-    String email_address;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,16 +64,15 @@ public class MainActivity extends AppCompatActivity
         mFirebase.addAuthStateListener(new Firebase.AuthStateListener() {
             @Override
             public void onAuthStateChanged(AuthData authData) {
-                isAuthed = authData != null;
+                boolean isAuthed = authData != null;
                 Log.d("IsAuthed", String.valueOf(isAuthed));
-                if (acct != null && !isAuthed) {
-                    new GetAuthToken().execute(firebaseUid);
+                if (!isAuthed) {
+                    authorizeFireBaseUser(SaveSharedPreference.getGoogleOauthToken(getApplicationContext()));
                 }
             }
         });
 
-        mAuthData = mFirebase.getAuth();
-        isAuthed = mAuthData != null;
+        buildNewGoogleApiClient();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -131,19 +106,8 @@ public class MainActivity extends AppCompatActivity
         profilePic = (CircleImageView) headerLayout.findViewById(R.id.profile_pic);
         user_name = (TextView) headerLayout.findViewById(R.id.user_name);
         gemail_id = (TextView) headerLayout.findViewById(R.id.textview_email);
-        signOutBtn = (Button) findViewById(R.id.sign_out_button);
-        discBtn = (Button) findViewById(R.id.disconnect_button);
-        signOutDisc = (LinearLayout) findViewById(R.id.sign_out_and_disconnect);
-        signInButton = (SignInButton) findViewById(sign_in_button);
-        updateUI(acct != null);
 
-
-        buildNewGoogleApiClient();
-        customizeSignInBtn();
-        setBtnClickListeners();
-
-
-        Log.d("Activity data", String.valueOf(acct != null));
+        setPersonalInfo();
 
     }
 
@@ -208,6 +172,8 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_settings) {
 
+        } else if (id == R.id.nav_logout) {
+            signOut();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -216,11 +182,6 @@ public class MainActivity extends AppCompatActivity
         }
         return true;
     }
-
-    /*
-   create and  initialize GoogleApiClient object to use Google Plus Api.
-   While initializing the GoogleApiClient object, request the Plus.SCOPE_PLUS_LOGIN scope.
-   */
 
     private void buildNewGoogleApiClient() {
 
@@ -236,29 +197,13 @@ public class MainActivity extends AppCompatActivity
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
-
-        OptionalPendingResult<GoogleSignInResult> pendingResult = Auth.GoogleSignInApi.silentSignIn(google_api_client);
-
-        if (pendingResult.isDone()) {
-            handleSignInResult(pendingResult.get());
-        }
     }
 
-    private void customizeSignInBtn() {
-        // Customize sign-in button. The sign-in button can be displayed in
-        // multiple sizes and color schemes. It can also be contextually
-        // rendered based on the requested scopes. For example. a red button may
-        // be displayed when Google+ scopes are requested, but a white button
-        // may be displayed when only basic profile is requested. Try adding the
-        // Scopes.PLUS_LOGIN scope to the GoogleSignInOptions to see the
-        // difference.
 
-        if (signInButton != null) {
-            signInButton.setSize(SignInButton.SIZE_STANDARD);
-            signInButton.setScopes(gso.getScopeArray());
-        }
 
-    }
+
+
+
 
 
     private void signOut() {
@@ -266,9 +211,11 @@ public class MainActivity extends AppCompatActivity
                 new ResultCallback<Status>() {
                     @Override
                     public void onResult(@NonNull Status status) {
-                        acct = null;
-                        updateUI(!status.isSuccess());
                         mFirebase.unauth();
+                        SaveSharedPreference.setIsLoggedIn(getApplicationContext(), false);
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
                 });
     }
@@ -278,132 +225,30 @@ public class MainActivity extends AppCompatActivity
                 new ResultCallback<Status>() {
                     @Override
                     public void onResult(@NonNull Status status) {
-                        acct = null;
-                        updateUI(!status.isSuccess());
                         mFirebase.unauth();
                     }
                 });
     }
 
-    private void signIn() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(google_api_client);
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    /*
-      Will receive the activity result and check which request we are responding to
-
-     */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode,
-                                    Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-            handleSignInResult(result);
-        }
-    }
-
-    private void handleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
-        if (result.isSuccess()) {
-            // Signed in successfully, show authenticated UI.
-            acct = result.getSignInAccount();
-            String idToken = acct.getIdToken();
-            if (idToken != null) {
-                Log.d("idToken: ", idToken);
-                SaveSharedPreference.setGoogleIdToken(getApplicationContext(), idToken);
-            }
 
 
-            if (acct != null) {
-                email_address = acct.getEmail();
-                updateUI(true);
 
-                new GetAuthToken().execute(firebaseUid);
-            }
-        } else {
-            // Signed out, show unauthenticated UI.
-            updateUI(false);
-        }
-    }
-
-    /*
-    Set on click Listeners on the sign-in sign-out and disconnect buttons
-     */
-    private void setBtnClickListeners() {
-        // Button listeners
-        signInButton.setOnClickListener(this);
-        signOutBtn.setOnClickListener(this);
-        discBtn.setOnClickListener(this);
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case sign_in_button:
-                signIn();
-                break;
-            case R.id.sign_out_button:
-                signOut();
-
-                break;
-            case R.id.disconnect_button:
-                revokeAccess();
-
-                break;
-        }
-
-    }
-
-    /*
-     Show and hide of the Views according to the user login status
-     */
-    private void updateUI(boolean signedIn) {
-        if (signedIn) {
-            signInButton.setVisibility(View.GONE);
-            signOutDisc.setVisibility(View.VISIBLE);
-
-            setPersonalInfo();
-
-        } else {
-
-            signInButton.setVisibility(View.VISIBLE);
-            signOutDisc.setVisibility(View.GONE);
-
-            user_name.setText(R.string.null_string);
-            gemail_id.setText(R.string.dummy_email);
-            profilePic.setImageDrawable(getResources().getDrawable(android.R.drawable.sym_def_app_icon));
-
-        }
-    }
 
     private void setPersonalInfo() {
+        Context ctx = getApplicationContext();
 
 
-        String personName = acct.getDisplayName();
+        String displayName = SaveSharedPreference.getGoogleDisplayName(ctx);
+        String email = SaveSharedPreference.getGoogleEmail(ctx);
+        String photoURL = SaveSharedPreference.getGooglePictureUrl(ctx);
 
-        if (acct.getPhotoUrl() != null) {
-            String personPhotoUrl = acct.getPhotoUrl().toString();
-            Picasso.with(getApplicationContext()).load(personPhotoUrl).resize(200, 200).into(profilePic);
+        if (!photoURL.equals("")) {
+            Picasso.with(getApplicationContext()).load(photoURL).resize(200, 200).into(profilePic);
         }
-        String email = acct.getEmail();
-
-        user_name.setText(personName);
-
+        user_name.setText(displayName);
         gemail_id.setText(email);
 
     }
-
-
-
-
-
-    /*
-    set the User information into the views defined in the layout
-    */
 
     private void authorizeFireBaseUser(String googleAccessToken) {
 
@@ -411,11 +256,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onAuthenticated(AuthData authData) {
                 Log.d(TAG, "OnAuth ran");
-                mAuthData = authData;
-                Log.d(TAG, mAuthData.getProvider());
-                Log.d(TAG, mAuthData.getUid());
-                firebaseUid = mAuthData.getUid();
-                SaveSharedPreference.setFirebaseUid(getApplicationContext(), firebaseUid);
+                Log.d(TAG, authData.getProvider());
+                Log.d(TAG, authData.getUid());
+                SaveSharedPreference.setFirebaseUid(getApplicationContext(), authData.getUid());
 
                 Map<String, String> map = new HashMap<>();
                 map.put("provider", authData.getProvider());
@@ -432,63 +275,10 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
-    public class GetAuthToken extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... params) {
-            String scopes = "oauth2:profile email";
-            String token = null;
-
-            try {
-                token = GoogleAuthUtil.getToken(getApplicationContext(), email_address, scopes);
-            } catch (IOException | GoogleAuthException e) {
-                e.printStackTrace();
-            }
-            return token;
-        }
-
-        @Override
-        protected void onPostExecute(String userIdToken) {
-            super.onPostExecute(userIdToken);
-            Log.d(TAG, userIdToken);
-            SaveSharedPreference.setGoogleOAuthToken(getApplicationContext(), userIdToken);
-            authorizeFireBaseUser(userIdToken);
-        }
-    }
-
-    /*
-
-    private class RetrieveTokenTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        public String doInBackground(String... params) {
-            String accountName = params[0];
-            String scopes = "oauth2:"
-                    + Scopes.PLUS_LOGIN + " "
-                    + Scopes.PROFILE;
-
-            try {
-                if (!isAuthed) {
-                    googleAccessToken = GoogleAuthUtil.getToken(getApplicationContext(), accountName, scopes);
-                    authorizeFireBaseUser(googleAccessToken);
-                }
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
-            } catch (UserRecoverableAuthException e) {
-                startActivityForResult(e.getIntent(), REQ_SIGN_IN_REQUIRED);
-            } catch (GoogleAuthException e) {
-                Log.e(TAG, e.getMessage());
-            }
-
-
-            return googleAccessToken;
-
-        }*/
-
-
 }
 
