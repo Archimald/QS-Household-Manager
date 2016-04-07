@@ -140,7 +140,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 SaveSharedPreference.setGoogleAccount(getApplicationContext(), acct);
                 SaveSharedPreference.setIsLoggedIn(getApplicationContext(), true);
                 new GetAuthToken().execute(acct.getEmail());
-                Intent intent = new Intent(this, MainActivity.class);
+                Intent intent = new Intent(this, GroupActivity.class);
                 startActivity(intent);
                 finish();
             }

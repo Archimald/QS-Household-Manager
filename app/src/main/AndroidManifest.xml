@@ -42,7 +42,11 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login"></activity>
+            android:label="@string/title_activity_login" />
+        <activity
+            android:name=".GroupActivity"
+            android:label="Invites"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

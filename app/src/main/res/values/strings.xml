@@ -28,4 +28,9 @@
     <string name="server_client_id">697149179812-g9bjdpdoo914tnjtl052lu9hufkuqcn5.apps.googleusercontent.com</string>
     <string name="null_string">NULL</string>
     <string name="dummy_email">quad@squad.com</string>
+    <string name="create_group">Create Group</string>
+    <string name="join">Join</string>
+    <string name="dismiss">Dismiss Invite</string>
+    <string name="from_dummy">From invite@email.com</string>
+    <string name="house_name">House Name</string>
 </resources>
