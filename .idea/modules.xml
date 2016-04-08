@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/HouseholdManager.iml" filepath="$PROJECT_DIR$/HouseholdManager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/QS-Household-Manager.iml" filepath="$PROJECT_DIR$/QS-Household-Manager.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

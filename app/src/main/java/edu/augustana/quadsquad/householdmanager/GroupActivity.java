@@ -1,6 +1,5 @@
 package edu.augustana.quadsquad.householdmanager;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -70,15 +69,12 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         });
 
         btnAddGroup = (Button) findViewById(R.id.create_group);
+
         btnAddGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Context context = getApplicationContext();
-                Firebase inviteRef = mFirebase.child("invites");
-                Invite invite = new Invite(SaveSharedPreference.getGoogleDisplayName(context) + "'s House"
-                        , SaveSharedPreference.getGoogleEmail(context)
-                        , SaveSharedPreference.getGooglePictureUrl(context));
-                inviteRef.push().setValue(invite);
+                Intent newGroupIntent = new Intent(GroupActivity.this, NewGroupActivity.class);
+                startActivity(newGroupIntent);
             }
         });
 

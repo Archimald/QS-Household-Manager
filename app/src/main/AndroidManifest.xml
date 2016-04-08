@@ -47,6 +47,11 @@
             android:name=".GroupActivity"
             android:label="Invites"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".NewGroupActivity"
+            android:label="@string/title_activity_new_group"
+            android:parentActivityName=".GroupActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

@@ -33,4 +33,7 @@
     <string name="dismiss">Dismiss Invite</string>
     <string name="from_dummy">From invite@email.com</string>
     <string name="house_name">House Name</string>
+    <string name="lbl_new_group">New Group</string>
+    <string name="lbl_group_nme">Group Name</string>
+    <string name="title_activity_new_group">NewGroupActivity</string>
 </resources>
