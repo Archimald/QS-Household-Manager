@@ -8,7 +8,8 @@ import java.net.URI;
 public class Invite {
     protected String houseName;
     protected String fromText;
-    protected URI contactPicURI;
+    protected String contactPicURI;
+    protected String groupReferal;
 
     public Invite() {
 
@@ -18,13 +19,14 @@ public class Invite {
     public Invite(String houseName, String fromText, URI contactPicURI) {
         this.houseName = houseName;
         this.fromText = fromText;
-        this.contactPicURI = contactPicURI;
+        this.contactPicURI = contactPicURI.toString();
     }
 
-    public Invite(String houseName, String fromText, String contactPicURI) {
+    public Invite(String houseName, String fromText, String contactPicURI, String groupReferal) {
         this.houseName = houseName;
         this.fromText = fromText;
-        this.contactPicURI = URI.create(contactPicURI);
+        this.contactPicURI = contactPicURI;
+        this.groupReferal = groupReferal;
     }
 
     public String getHouseName() {
@@ -35,7 +37,7 @@ public class Invite {
         return fromText;
     }
 
-    public URI getContactPicURI() {
+    public String getContactPicURI() {
         return contactPicURI;
     }
 }

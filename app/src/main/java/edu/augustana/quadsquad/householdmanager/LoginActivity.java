@@ -42,6 +42,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private GoogleSignInOptions gso;
     private GoogleApiClient google_api_client;
     private GoogleSignInAccount acct;
+    private boolean hasGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,9 +141,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 SaveSharedPreference.setGoogleAccount(getApplicationContext(), acct);
                 SaveSharedPreference.setIsLoggedIn(getApplicationContext(), true);
                 new GetAuthToken().execute(acct.getEmail());
-                Intent intent = new Intent(this, GroupActivity.class);
-                startActivity(intent);
-                finish();
+                hasGroup = SaveSharedPreference.getHasGroup(getApplicationContext());
+                if (hasGroup){
+                    Intent intent = new Intent(this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
+                else {
+                    Intent intent = new Intent(this, GroupActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
             }
         }
     }

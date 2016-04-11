@@ -10,17 +10,26 @@ import android.support.v7.app.AppCompatActivity;
 public class SplashActivity extends AppCompatActivity {
 
     boolean isLoggedIn;
+    boolean hasGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         isLoggedIn = SaveSharedPreference.getIsLoggedIn(getApplicationContext());
+        hasGroup = SaveSharedPreference.getHasGroup(getApplicationContext());
 
         if (isLoggedIn) {
-            Intent intent = new Intent(this, GroupActivity.class);
-            startActivity(intent);
-            finish();
+            if (hasGroup){
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+                finish();
+            }
+            else {
+                Intent intent = new Intent(this, GroupActivity.class);
+                startActivity(intent);
+                finish();
+            }
         } else {
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);

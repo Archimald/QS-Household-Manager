@@ -19,6 +19,7 @@ public class SaveSharedPreference {
     static final String PREF_FIREBASE_UID = "Firebase UID";
     static final String PREF_GOOGLE_OAUTH_TOKEN = "Google OAuth Token";
     static final String PREF_IS_LOGGED_IN = "Is Logged In";
+    static final String PREF_HAS_GROUP = "Has Group";
 
     static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -54,6 +55,12 @@ public class SaveSharedPreference {
         editor.apply();
     }
 
+    public static void setHasGroup(Context ctx, boolean hasGroup) {
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putBoolean(PREF_HAS_GROUP, hasGroup);
+        editor.apply();
+    }
+
     public static String getFirebaseUid(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_FIREBASE_UID, "");
     }
@@ -80,6 +87,10 @@ public class SaveSharedPreference {
 
     public static boolean getIsLoggedIn(Context ctx) {
         return getSharedPreferences(ctx).getBoolean(PREF_IS_LOGGED_IN, false);
+    }
+
+    public static boolean getHasGroup(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean(PREF_HAS_GROUP, false);
     }
 
     /*public static void clearUserName(Context ctx) {

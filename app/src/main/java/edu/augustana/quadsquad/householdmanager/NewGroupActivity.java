@@ -1,6 +1,7 @@
 package edu.augustana.quadsquad.householdmanager;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -58,10 +59,22 @@ public class NewGroupActivity extends AppCompatActivity {
                 String newName=groupName.getText().toString();
                 Context context = getApplicationContext();
                 Firebase inviteRef = mFirebase.child("invites");
+                Firebase groupRef = mFirebase.child("groups");
+                Firebase memberRef = mFirebase.child("groups").child("members");
+                Group group = new Group(newName, SaveSharedPreference.getGoogleEmail(context), SaveSharedPreference.getGoogleIdToken(context));
+                Firebase newPostRef = groupRef.push();
+                newPostRef.setValue(group);
+                memberRef.push().setValue(SaveSharedPreference.getGoogleEmail(context));
+                String newGroupReferralKey = newPostRef.getKey();
                 Invite invite = new Invite(newName
                         , SaveSharedPreference.getGoogleEmail(context)
-                        , SaveSharedPreference.getGooglePictureUrl(context));
+                        , SaveSharedPreference.getGooglePictureUrl(context)
+                        , newGroupReferralKey);
+
+
                 inviteRef.push().setValue(invite);
+                Intent intent = new Intent(NewGroupActivity.this, MainActivity.class);
+                startActivity(intent);
                 finish();
             }
         });

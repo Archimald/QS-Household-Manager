@@ -95,11 +95,13 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                 inviteViewHolder.key = this.getRef(i).getKey();
                 inviteViewHolder.vHouseName.setText(invite.houseName);
                 inviteViewHolder.vFromText.setText(String.format("From %s", invite.fromText));
-                Picasso.with(getApplicationContext())
-                        .load(invite.contactPicURI.toString())
-                        .placeholder(R.drawable.blank_conact)
-                        .fit()
-                        .into(inviteViewHolder.iProfile);
+                if (!invite.contactPicURI.equals("")) {
+                    Picasso.with(getApplicationContext())
+                            .load(invite.contactPicURI).error(R.drawable.blank_conact)
+                            .placeholder(R.drawable.blank_conact)
+                            .fit()
+                            .into(inviteViewHolder.iProfile);
+                }
                 inviteViewHolder.bDismiss.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
