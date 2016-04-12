@@ -19,14 +19,17 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import java.util.HashMap;
 import java.util.Map;
 
+//import com.google.android.gms.appinvite.AppInviteInvitation;
+
 public class NewGroupActivity extends AppCompatActivity {
 
+    final int REQUEST_INVITE = 13;
     private final String TAG = "New Group Activity";
     Firebase mFirebase;
     GoogleApiClient google_api_client;
     GoogleSignInOptions gso;
-
     Button createGrp;
+    Button invitesBtn;
     EditText groupName;
 
     @Override
@@ -50,6 +53,7 @@ public class NewGroupActivity extends AppCompatActivity {
 
         groupName = (EditText) findViewById(R.id.editText);
         createGrp = (Button) toolbar.findViewById(R.id.toolbar_save);
+        invitesBtn = (Button) findViewById(R.id.invite_button);
 
         Firebase.setAndroidContext(this);
 
@@ -96,8 +100,24 @@ public class NewGroupActivity extends AppCompatActivity {
             }
         });
 
+        invitesBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //onInviteClicked();
+            }
+        });
+
 
     }
+
+    /*private void onInviteClicked() {
+        Intent intent = new AppInviteInvitation.IntentBuilder("Join My Household!")
+                .setMessage("Hey! \n" +
+                        "I'm using Household Manager to keep track of chores and todo-lists and communication.\n" +
+                        "Since we're roommates, you should use it too. Accept my invite.")
+                .build();
+        startActivityForResult(intent, REQUEST_INVITE);
+    }*/
 
     private void authorizeFireBaseUser(String googleAccessToken) {
 

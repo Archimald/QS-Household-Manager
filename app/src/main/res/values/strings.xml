@@ -38,4 +38,5 @@
     <string name="title_activity_new_group">NewGroupActivity</string>
     <string name="group_name">Group Name</string>
     <string name="save">SAVE</string>
+    <string name="invite_housemates">Invite Housemates</string>
 </resources>
