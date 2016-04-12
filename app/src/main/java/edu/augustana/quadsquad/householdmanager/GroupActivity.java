@@ -19,6 +19,7 @@ import android.widget.Button;
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -84,14 +85,18 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         invitesRecyclerView.setLayoutManager(llm);
+        String email = SaveSharedPreference.getGoogleEmail(getApplicationContext());
 
-        final Firebase invitesRef = mFirebase.child("invites");
+        final Query invitesRef = mFirebase.child("invites")
+                .orderByChild("toText")
+                .startAt(email).endAt(email);
 
 
         mAdapter = new FirebaseRecyclerAdapter<Invite, InviteViewHolder>(Invite.class, R.layout.invite_card, InviteViewHolder.class, invitesRef) {
 
             @Override
             protected void populateViewHolder(final InviteViewHolder inviteViewHolder, final Invite invite, int i) {
+                final Firebase ref = this.getRef(i);
                 inviteViewHolder.key = this.getRef(i).getKey();
                 inviteViewHolder.vHouseName.setText(invite.houseName);
                 inviteViewHolder.vFromText.setText(String.format("From %s", invite.fromText));
@@ -105,7 +110,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                 inviteViewHolder.bDismiss.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        invitesRef.child(inviteViewHolder.key).removeValue();
+                        ref.removeValue();
                     }
                 });
 
