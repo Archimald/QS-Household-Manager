@@ -36,4 +36,6 @@
     <string name="lbl_new_group">New Group</string>
     <string name="lbl_group_nme">Group Name</string>
     <string name="title_activity_new_group">NewGroupActivity</string>
+    <string name="group_name">Group Name</string>
+    <string name="save">SAVE</string>
 </resources>

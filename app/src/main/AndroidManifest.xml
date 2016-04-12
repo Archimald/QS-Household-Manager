@@ -49,7 +49,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".NewGroupActivity"
-            android:label="@string/title_activity_new_group"
+            android:label="New Group"
             android:parentActivityName=".GroupActivity"
             android:theme="@style/AppTheme.NoActionBar" />
     </application>

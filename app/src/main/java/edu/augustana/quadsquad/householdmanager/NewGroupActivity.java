@@ -33,12 +33,23 @@ public class NewGroupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_group);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.new_group_toolbar);
         setSupportActionBar(toolbar);
+
+        assert toolbar != null;
+        toolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
+        toolbar.setTitle("New Group");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
 
 
         groupName = (EditText) findViewById(R.id.editText);
-        createGrp = (Button) findViewById(R.id.button);
+        createGrp = (Button) toolbar.findViewById(R.id.toolbar_save);
 
         Firebase.setAndroidContext(this);
 
