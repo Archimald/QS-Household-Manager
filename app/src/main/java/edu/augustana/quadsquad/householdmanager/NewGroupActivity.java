@@ -36,6 +36,7 @@ public class NewGroupActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         groupName = (EditText) findViewById(R.id.editText);
         createGrp = (Button) findViewById(R.id.button);
 
@@ -56,7 +57,7 @@ public class NewGroupActivity extends AppCompatActivity {
         createGrp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String newName=groupName.getText().toString();
+                String newName = groupName.getText().toString();
                 Context context = getApplicationContext();
 
                 Firebase groupRef = mFirebase.child("groups");
@@ -83,8 +84,6 @@ public class NewGroupActivity extends AppCompatActivity {
                 finish();
             }
         });
-
-
 
 
     }

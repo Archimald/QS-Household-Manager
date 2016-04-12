@@ -24,7 +24,9 @@
             android:layout_marginTop="8dp"
             android:layout_toLeftOf="@+id/imageView"
             android:layout_toStartOf="@+id/imageView"
+            android:ellipsize="marquee"
             android:gravity="center_vertical"
+            android:singleLine="true"
             android:text="@string/house_name"
             android:textSize="24sp" />
 
@@ -41,7 +43,9 @@
             android:layout_marginTop="8dp"
             android:layout_toLeftOf="@+id/imageView"
             android:layout_toStartOf="@+id/imageView"
+            android:ellipsize="marquee"
             android:gravity="center_vertical"
+            android:singleLine="true"
             android:text="@string/from_dummy"
             android:textSize="14sp" />
 

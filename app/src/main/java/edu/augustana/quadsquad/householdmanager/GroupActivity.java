@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,7 +15,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
@@ -43,7 +43,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
 
     FirebaseRecyclerAdapter<Invite, InviteViewHolder> mAdapter;
 
-    Button btnAddGroup;
+    FloatingActionButton btnAddGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +69,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
             }
         });
 
-        btnAddGroup = (Button) findViewById(R.id.create_group);
+        btnAddGroup = (FloatingActionButton) findViewById(R.id.create_group);
 
         btnAddGroup.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,8 +87,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         invitesRecyclerView.setLayoutManager(llm);
         String email = SaveSharedPreference.getGoogleEmail(getApplicationContext());
 
-        final Query invitesRef = mFirebase.child("invites")
-                .orderByChild("toText")
+        final Query invitesRef = mFirebase.child("invites").orderByChild("toText")
                 .startAt(email).endAt(email);
 
 
