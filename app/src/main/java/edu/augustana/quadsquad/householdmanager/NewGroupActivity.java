@@ -58,20 +58,25 @@ public class NewGroupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String newName=groupName.getText().toString();
                 Context context = getApplicationContext();
-                Firebase inviteRef = mFirebase.child("invites");
+
                 Firebase groupRef = mFirebase.child("groups");
-                Firebase memberRef = mFirebase.child("groups").child("members");
                 Group group = new Group(newName, SaveSharedPreference.getGoogleEmail(context), SaveSharedPreference.getGoogleIdToken(context));
                 Firebase newPostRef = groupRef.push();
                 newPostRef.setValue(group);
+                Firebase memberRef = newPostRef.child("members");
                 memberRef.push().setValue(SaveSharedPreference.getGoogleEmail(context));
                 String newGroupReferralKey = newPostRef.getKey();
+
                 Invite invite = new Invite(newName
+                        , SaveSharedPreference.getGoogleEmail(context)
                         , SaveSharedPreference.getGoogleEmail(context)
                         , SaveSharedPreference.getGooglePictureUrl(context)
                         , newGroupReferralKey);
 
+                SaveSharedPreference.setGroupId(context, newGroupReferralKey);
+                SaveSharedPreference.setHasGroup(context, true);
 
+                Firebase inviteRef = mFirebase.child("invites");
                 inviteRef.push().setValue(invite);
                 Intent intent = new Intent(NewGroupActivity.this, MainActivity.class);
                 startActivity(intent);

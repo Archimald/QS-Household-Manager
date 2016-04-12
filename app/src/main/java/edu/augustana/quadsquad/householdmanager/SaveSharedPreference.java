@@ -20,6 +20,7 @@ public class SaveSharedPreference {
     static final String PREF_GOOGLE_OAUTH_TOKEN = "Google OAuth Token";
     static final String PREF_IS_LOGGED_IN = "Is Logged In";
     static final String PREF_HAS_GROUP = "Has Group";
+    static final String PREF_GROUP_ID ="Group ID";
 
     static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -61,6 +62,12 @@ public class SaveSharedPreference {
         editor.apply();
     }
 
+    public static void setGroupId(Context ctx, String newId) {
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putString(PREF_GROUP_ID, newId);
+        editor.apply();
+    }
+
     public static String getFirebaseUid(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_FIREBASE_UID, "");
     }
@@ -91,6 +98,10 @@ public class SaveSharedPreference {
 
     public static boolean getHasGroup(Context ctx) {
         return getSharedPreferences(ctx).getBoolean(PREF_HAS_GROUP, false);
+    }
+
+    public static String getPrefGroupId(Context ctx) {
+        return getSharedPreferences(ctx).getString(PREF_GROUP_ID, "");
     }
 
     /*public static void clearUserName(Context ctx) {

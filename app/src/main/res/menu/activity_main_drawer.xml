@@ -30,6 +30,10 @@
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_exit_to_app_black_24dp"
                 android:title="Log Out" />
+            <item
+                android:id="@+id/nav_leavegroup"
+                android:icon="@drawable/ic_exit_to_app_black_24dp"
+                android:title="Leave Group" />
         </menu>
     </item>
 

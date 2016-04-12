@@ -10,6 +10,8 @@ public class Invite {
     protected String fromText;
     protected String contactPicURI;
     protected String groupReferal;
+    protected String toText;
+    protected boolean dismissed;
 
     public Invite() {
 
@@ -22,11 +24,13 @@ public class Invite {
         this.contactPicURI = contactPicURI.toString();
     }
 
-    public Invite(String houseName, String fromText, String contactPicURI, String groupReferal) {
+    public Invite(String houseName, String fromText, String toText, String contactPicURI, String groupReferal) {
         this.houseName = houseName;
         this.fromText = fromText;
+        this.toText = toText;
         this.contactPicURI = contactPicURI;
         this.groupReferal = groupReferal;
+        this.dismissed = false;
     }
 
     public String getHouseName() {

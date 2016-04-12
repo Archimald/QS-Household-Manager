@@ -22,8 +22,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
@@ -175,6 +178,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_logout) {
             signOut();
         }
+        else if (id == R.id.nav_leavegroup) {
+            leaveGroup();
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {
@@ -228,6 +234,33 @@ public class MainActivity extends AppCompatActivity
                         mFirebase.unauth();
                     }
                 });
+    }
+
+    private void leaveGroup(){
+        Context context=getApplicationContext();
+        Firebase grpRef = mFirebase.child("groups").child(SaveSharedPreference.getPrefGroupId(context));
+        Query qryRef = grpRef.child("members").orderByValue().equalTo(SaveSharedPreference.getGoogleEmail(context));
+        qryRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChildren()) {
+                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                    firstChild.getRef().removeValue();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+        SaveSharedPreference.setHasGroup(context, false);
+        SaveSharedPreference.setGroupId(context,"");
+        Intent intent = new Intent(this, GroupActivity.class);
+        startActivity(intent);
+        finish();
     }
 
 
