@@ -201,8 +201,10 @@ public class MainActivity extends AppCompatActivity
         }
 
         // Insert the fragment by replacing any existing fragment
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.rlContent, fragment).commit();
+        if (fragment != null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction().replace(R.id.rlContent, fragment).commit();
+        }
 
         item.setChecked(true);
         setTitle(item.getTitle());
