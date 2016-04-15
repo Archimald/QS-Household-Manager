@@ -3,11 +3,14 @@ package edu.augustana.quadsquad.householdmanager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.GravityCompat;
@@ -41,7 +44,8 @@ import java.util.Map;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
+        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener {
 
 
     private static final String TAG = "Main Activity";
@@ -162,11 +166,14 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
+        Fragment fragment = null;
+        Class fragmentClass = null;
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_corkboard) {
-            // Handle the camera action
+
+            fragmentClass = CorkboardFragment.class;
         } else if (id == R.id.nav_todo) {
 
         } else if (id == R.id.nav_bills) {
@@ -175,12 +182,30 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_settings) {
 
+        } else if (id == R.id.nav_group_management) {
+            fragmentClass = GroupManagementFragment.class;
+
         } else if (id == R.id.nav_logout) {
             signOut();
         }
         else if (id == R.id.nav_leavegroup) {
             leaveGroup();
         }
+
+        try {
+            if (fragmentClass != null) {
+                fragment = (Fragment) fragmentClass.newInstance();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Insert the fragment by replacing any existing fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.rlContent, fragment).commit();
+
+        item.setChecked(true);
+        setTitle(item.getTitle());
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {
@@ -312,6 +337,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
     }
 }
 

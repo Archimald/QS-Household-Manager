@@ -12,6 +12,7 @@ import android.view.View.OnClickListener;
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.google.android.gms.appinvite.AppInvite;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.api.Auth;
@@ -77,6 +78,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         google_api_client = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .addApi(AppInvite.API).enableAutoManage(this, this)
                 .build();
     }
 
