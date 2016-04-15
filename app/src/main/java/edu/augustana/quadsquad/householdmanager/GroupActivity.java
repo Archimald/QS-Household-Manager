@@ -1,5 +1,6 @@
 package edu.augustana.quadsquad.householdmanager;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -17,9 +18,11 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -99,6 +102,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                 inviteViewHolder.key = this.getRef(i).getKey();
                 inviteViewHolder.vHouseName.setText(invite.houseName);
                 inviteViewHolder.vFromText.setText(String.format("From %s", invite.fromText));
+                final String groupRefString = invite.getGroupReferal();
                 if (!invite.contactPicURI.equals("")) {
                     Picasso.with(getApplicationContext())
                             .load(invite.contactPicURI).error(R.drawable.blank_conact)
@@ -110,6 +114,40 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                     @Override
                     public void onClick(View v) {
                         ref.removeValue();
+                    }
+                });
+                inviteViewHolder.bJoin.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        Log.d("TAG", groupRefString);
+                        Query groupRefQuery = mFirebase.child("groups").orderByKey().equalTo(groupRefString);
+                        groupRefQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.hasChildren()) {
+                                    Context ctx = getApplicationContext();
+                                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                                    Firebase groupRef = firstChild.getRef();
+                                    Firebase memberRef = groupRef.child("members");
+                                    memberRef.push().setValue(SaveSharedPreference.getGoogleEmail(ctx));
+                                    String newGroupReferralKey = groupRef.getKey();
+                                    SaveSharedPreference.setGroupId(ctx, newGroupReferralKey);
+                                    SaveSharedPreference.setHasGroup(ctx, true);
+                                    Intent intent = new Intent(GroupActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+
+                            }
+                        });
+
+
                     }
                 });
 

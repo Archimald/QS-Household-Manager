@@ -44,4 +44,6 @@ public class Invite {
     public String getContactPicURI() {
         return contactPicURI;
     }
+
+    public String getGroupReferal() { return groupReferal;}
 }
