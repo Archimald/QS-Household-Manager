@@ -94,9 +94,6 @@ public class NewGroupActivity extends AppCompatActivity {
 
                 Firebase inviteRef = mFirebase.child("invites");
                 inviteRef.push().setValue(invite);
-                Intent intent = new Intent(NewGroupActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish();
 
                 //Post groupReference to users tree
                 Query userQuery = mFirebase.child("users").orderByChild("email").equalTo(SaveSharedPreference.getGoogleEmail(context));
@@ -116,6 +113,12 @@ public class NewGroupActivity extends AppCompatActivity {
 
                     }
                 });
+                SaveSharedPreference.setHouseName(context, newName);
+                Intent intent = new Intent(NewGroupActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();
+
+
             }
         });
 
