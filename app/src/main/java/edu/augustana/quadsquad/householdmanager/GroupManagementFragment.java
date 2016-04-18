@@ -5,13 +5,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.ListViewCompat;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -51,8 +51,8 @@ public class GroupManagementFragment extends Fragment {
     private Button btnInvites;
     private OnFragmentInteractionListener mListener;
 
-    private ListViewCompat membersList;
-    private ListViewCompat invitesList;
+    private ListView membersList;
+    private ListView invitesList;
 
     private Firebase ref;
     private FirebaseListAdapter<Member> memberAdapter;
@@ -135,9 +135,9 @@ public class GroupManagementFragment extends Fragment {
             }
         });
 
-        invitesList = (ListViewCompat) getView().findViewById(R.id.invites_list_view);
+        invitesList = (ListView) getView().findViewById(R.id.invites_list_view);
 
-        membersList = (ListViewCompat) getView().findViewById(R.id.members_list_view);
+        membersList = (ListView) getView().findViewById(R.id.members_list_view);
 
         bindListViews();
 

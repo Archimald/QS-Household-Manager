@@ -7,10 +7,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginEnd="@dimen/activity_horizontal_margin"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
         android:orientation="vertical">
 
         <Button
@@ -35,20 +35,15 @@
                 android:text="@string/members"
                 android:textSize="16sp" />
 
-            <ScrollView
-                android:id="@+id/membersScrollView"
+
+            <ListView
+                android:id="@+id/members_list_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
 
-                <android.support.v7.widget.ListViewCompat
-                    android:id="@+id/members_list_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+            </ListView>
 
-
-                </android.support.v7.widget.ListViewCompat>
-            </ScrollView>
         </android.support.v7.widget.LinearLayoutCompat>
 
         <android.support.v7.widget.LinearLayoutCompat
@@ -64,20 +59,15 @@
                 android:text="@string/invites"
                 android:textSize="16sp" />
 
-            <ScrollView
-                android:id="@+id/invitesScrollView"
+
+            <ListView
+                android:id="@+id/invites_list_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="wrap_content">
 
 
-                <android.support.v7.widget.ListViewCompat
-                    android:id="@+id/invites_list_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+            </ListView>
 
-
-                </android.support.v7.widget.ListViewCompat>
-            </ScrollView>
         </android.support.v7.widget.LinearLayoutCompat>
     </LinearLayout>
 
