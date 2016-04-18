@@ -206,6 +206,9 @@ public class MainActivity extends AppCompatActivity
 
         item.setChecked(true);
         setTitle(item.getTitle());
+        if (item.getTitle().equals("Group Management")) {
+            setTitle(SaveSharedPreference.getHouseName(getApplicationContext()));
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {
