@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.ListViewCompat;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +15,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
 import com.firebase.ui.FirebaseListAdapter;
 import com.squareup.picasso.Picasso;
@@ -53,6 +56,7 @@ public class GroupManagementFragment extends Fragment {
 
     private Firebase ref;
     private FirebaseListAdapter<Member> memberAdapter;
+    private FirebaseListAdapter<Invite> inviteAdapter;
 
     public GroupManagementFragment() {
         // Required empty public constructor
@@ -86,6 +90,16 @@ public class GroupManagementFragment extends Fragment {
 
         Firebase.setAndroidContext(getContext());
         ref = new Firebase("https://household-manager-136.firebaseio.com");
+        ref.addAuthStateListener(new Firebase.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(AuthData authData) {
+                boolean isAuthed = authData != null;
+                Log.d("IsAuthed", String.valueOf(isAuthed));
+                if (!isAuthed) {
+                    authorizeFireBaseUser(SaveSharedPreference.getGoogleOauthToken(getContext()));
+                }
+            }
+        });
 
 
     }
@@ -152,6 +166,22 @@ public class GroupManagementFragment extends Fragment {
             }
         };
         membersList.setAdapter(memberAdapter);
+        memberAdapter.notifyDataSetChanged();
+
+        Firebase inviteRef = ref.child("invites");
+        Query inviteQuery = inviteRef.orderByChild("groupReferal").startAt(groupID).endAt(groupID);
+
+        inviteAdapter = new FirebaseListAdapter<Invite>(getActivity(), Invite.class, R.layout.avatar_list_item, inviteQuery) {
+            @Override
+            protected void populateView(View view, Invite invite, int position) {
+
+                ((TextView) view.findViewById(R.id.name_view)).setText(invite.toText);
+
+
+            }
+        };
+        invitesList.setAdapter(inviteAdapter);
+        inviteAdapter.notifyDataSetChanged();
 
     }
 
@@ -186,6 +216,30 @@ public class GroupManagementFragment extends Fragment {
         Invite newInvite = new Invite(SaveSharedPreference.getHouseName(ctx), SaveSharedPreference.getGoogleEmail(ctx),
                 email, SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getPrefGroupId(ctx));
         mFirebaseInvites.push().setValue(newInvite);
+    }
+
+    private void authorizeFireBaseUser(String googleAccessToken) {
+
+        ref.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
+            Context ctx = getContext();
+
+            @Override
+            public void onAuthenticated(AuthData authData) {
+                Log.d(TAG, "OnAuth ran");
+                Log.d(TAG, authData.getProvider());
+                Log.d(TAG, authData.getUid());
+                SaveSharedPreference.setFirebaseUid(getContext(), authData.getUid());
+                Member newMember = new Member(authData.getProviderData().get("displayName").toString(),
+                        authData.getProvider(), SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getGoogleEmail(ctx));
+
+                ref.child("users").child(authData.getUid()).setValue(newMember);
+            }
+
+            @Override
+            public void onAuthenticationError(FirebaseError firebaseError) {
+                Log.e("Auth error", firebaseError.getDetails());
+            }
+        });
     }
 
     /**

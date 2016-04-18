@@ -11,8 +11,11 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.firebase.client.AuthData;
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -78,7 +81,7 @@ public class NewGroupActivity extends AppCompatActivity {
                 newPostRef.setValue(group);
                 Firebase memberRef = newPostRef.child("members");
                 memberRef.push().setValue(SaveSharedPreference.getGoogleEmail(context));
-                String newGroupReferralKey = newPostRef.getKey();
+                final String newGroupReferralKey = newPostRef.getKey();
 
                 Invite invite = new Invite(newName
                         , SaveSharedPreference.getGoogleEmail(context)
@@ -94,6 +97,25 @@ public class NewGroupActivity extends AppCompatActivity {
                 Intent intent = new Intent(NewGroupActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
+
+                //Post groupReference to users tree
+                Query userQuery = mFirebase.child("users").orderByChild("email").equalTo(SaveSharedPreference.getGoogleEmail(context));
+                userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.hasChildren()) {
+                            DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                            Firebase userRef = firstChild.getRef();
+                            userRef.child("groupReferal").setValue(newGroupReferralKey);
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
+
+                    }
+                });
             }
         });
 
