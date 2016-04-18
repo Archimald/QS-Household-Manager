@@ -32,9 +32,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GroupActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     private final String TAG = "Group Activity";
@@ -120,25 +117,50 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                     @Override
                     public void onClick(View v) {
 
+                        final Context ctx = getApplicationContext();
+
                         Log.d("TAG", groupRefString);
                         Query groupRefQuery = mFirebase.child("groups").orderByKey().equalTo(groupRefString);
                         groupRefQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 if (dataSnapshot.hasChildren()) {
-                                    Context ctx = getApplicationContext();
                                     DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
                                     Firebase groupRef = firstChild.getRef();
                                     Firebase memberRef = groupRef.child("members");
                                     memberRef.push().setValue(SaveSharedPreference.getGoogleEmail(ctx));
+
+
                                     String newGroupReferralKey = groupRef.getKey();
+                                    String newHouseName = invite.houseName;
                                     SaveSharedPreference.setGroupId(ctx, newGroupReferralKey);
+                                    SaveSharedPreference.setHouseName(ctx, newHouseName);
                                     SaveSharedPreference.setHasGroup(ctx, true);
                                     Intent intent = new Intent(GroupActivity.this, MainActivity.class);
                                     startActivity(intent);
                                     finish();
                                 }
 
+                            }
+
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+
+                            }
+                        });
+
+                        //Post groupReference to users tree
+                        Query userQuery = mFirebase.child("users").orderByChild("email").equalTo(SaveSharedPreference.getGoogleEmail(ctx));
+                        userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.hasChildren()) {
+                                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                                    Firebase userRef = firstChild.getRef();
+                                    userRef.child("groupReferal").setValue(invite.getGroupReferal());
+                                    Log.d("post group", invite.getGroupReferal());
+
+                                }
                             }
 
                             @Override
@@ -188,19 +210,17 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
     private void authorizeFireBaseUser(String googleAccessToken) {
 
         mFirebase.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
+            Context ctx = getApplicationContext();
             @Override
             public void onAuthenticated(AuthData authData) {
                 Log.d(TAG, "OnAuth ran");
                 Log.d(TAG, authData.getProvider());
                 Log.d(TAG, authData.getUid());
                 SaveSharedPreference.setFirebaseUid(getApplicationContext(), authData.getUid());
+                Member newMember = new Member(authData.getProviderData().get("displayName").toString(),
+                        authData.getProvider(), SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getGoogleEmail(ctx));
 
-                Map<String, String> map = new HashMap<>();
-                map.put("provider", authData.getProvider());
-                if (authData.getProviderData().containsKey("displayName")) {
-                    map.put("displayName", authData.getProviderData().get("displayName").toString());
-                }
-                mFirebase.child("users").child(authData.getUid()).setValue(map);
+                mFirebase.child("users").child(authData.getUid()).setValue(newMember);
             }
 
             @Override

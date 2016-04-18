@@ -21,6 +21,7 @@ public class SaveSharedPreference {
     static final String PREF_IS_LOGGED_IN = "Is Logged In";
     static final String PREF_HAS_GROUP = "Has Group";
     static final String PREF_GROUP_ID ="Group ID";
+    static final String PREF_HOUSE_NAME = "Housename";
 
     static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -68,6 +69,12 @@ public class SaveSharedPreference {
         editor.apply();
     }
 
+    public static void setHouseName(Context ctx, String newHouseName) {
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putString(PREF_HOUSE_NAME, newHouseName);
+        editor.apply();
+    }
+
     public static String getFirebaseUid(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_FIREBASE_UID, "");
     }
@@ -104,6 +111,9 @@ public class SaveSharedPreference {
         return getSharedPreferences(ctx).getString(PREF_GROUP_ID, "");
     }
 
+    public static String getHouseName(Context ctx) {
+        return getSharedPreferences(ctx).getString(PREF_HOUSE_NAME, "");
+    }
     /*public static void clearUserName(Context ctx) {
         SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
         editor.clear(); // clear all stored data

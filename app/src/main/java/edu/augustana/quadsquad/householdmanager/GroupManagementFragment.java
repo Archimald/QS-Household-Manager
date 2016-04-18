@@ -1,20 +1,28 @@
 package edu.augustana.quadsquad.householdmanager;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v7.widget.ListViewCompat;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.firebase.client.Firebase;
-import com.google.android.gms.appinvite.AppInviteInvitation;
+import com.firebase.client.Query;
+import com.firebase.ui.FirebaseListAdapter;
+import com.squareup.picasso.Picasso;
+
+import de.hdodenhof.circleimageview.CircleImageView;
+//import com.google.android.gms.appinvite.AppInviteInvitation;
+//import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+//import com.google.api.services.people.v1.People;
 
 
 /**
@@ -31,12 +39,20 @@ public class GroupManagementFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     final int REQUEST_INVITE = 13;
+    final int PICK_CONTACT = 14;
+    final int GET_EMAIL = 15;
     private final String TAG = "GroupManagement";
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
     private Button btnInvites;
     private OnFragmentInteractionListener mListener;
+
+    private ListViewCompat membersList;
+    private ListViewCompat invitesList;
+
+    private Firebase ref;
+    private FirebaseListAdapter<Member> memberAdapter;
 
     public GroupManagementFragment() {
         // Required empty public constructor
@@ -68,15 +84,23 @@ public class GroupManagementFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
+        Firebase.setAndroidContext(getContext());
+        ref = new Firebase("https://household-manager-136.firebaseio.com");
+
 
     }
 
     private void onInviteClicked() {
-        Intent intent = new AppInviteInvitation.IntentBuilder("Join My Household!")
-                .setMessage("Hey! \n" +
-                        "I'm using Household Manager. Accept my invite.")
-                .build();
-        startActivityForResult(intent, REQUEST_INVITE);
+        new MaterialDialog.Builder(getContext())
+                .title("New Invite")
+                .content("Please enter the email address of the housemate you wish to invite.")
+                .inputType(InputType.TYPE_CLASS_TEXT)
+                .input("Email Address", "", false, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                        postInvite(input.toString());
+                    }
+                }).show();
     }
 
     @Override
@@ -96,6 +120,39 @@ public class GroupManagementFragment extends Fragment {
                 onInviteClicked();
             }
         });
+
+        invitesList = (ListViewCompat) getView().findViewById(R.id.invites_list_view);
+
+        membersList = (ListViewCompat) getView().findViewById(R.id.members_list_view);
+
+        bindListViews();
+
+    }
+
+    private void bindListViews() {
+        Firebase memberRef = ref.child("users");
+        String groupID = SaveSharedPreference.getPrefGroupId(getContext());
+        Query memberQuery = memberRef.orderByChild("groupReferal").startAt(groupID).endAt(groupID);
+
+        memberAdapter = new FirebaseListAdapter<Member>(getActivity(), Member.class, R.layout.avatar_list_item, memberQuery) {
+            @Override
+            protected void populateView(View view, Member member, int position) {
+
+                ((TextView) view.findViewById(R.id.name_view)).setText(member.getDisplayName());
+
+
+                String photoURL = member.getContactPicURI();
+                CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
+
+                if (!photoURL.equals("")) {
+                    Picasso.with(getContext()).load(photoURL).fit().into(avatar);
+                }
+
+
+            }
+        };
+        membersList.setAdapter(memberAdapter);
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -122,34 +179,13 @@ public class GroupManagementFragment extends Fragment {
         mListener = null;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
 
-        if (requestCode == REQUEST_INVITE) {
-            if (resultCode == Activity.RESULT_OK) {
-                // Check how many invitations were sent and log a message
-                // The ids array contains the unique invitation ids for each invitation sent
-                // (one for each contact select by the user). You can use these for analytics
-                // as the ID will be consistent on the sending and receiving devices.
-                //data.getDataString();
-                String[] ids = AppInviteInvitation.getInvitationIds(resultCode, data);
-                Log.d(TAG, data.getExtras().toString());
-                postInvites(ids);
-
-            } else {
-                // Sending failed or it was canceled, show failure message to the user
-                Log.e(TAG, "send failed");
-            }
-        }
-    }
-
-    private void postInvites(String[] ids) {
+    private void postInvite(String email) {
+        Context ctx = getContext();
         Firebase mFirebaseInvites = new Firebase("https://household-manager-136.firebaseio.com/invites");
-        for (String id : ids) {
-            Log.d(TAG, id);
-        }
+        Invite newInvite = new Invite(SaveSharedPreference.getHouseName(ctx), SaveSharedPreference.getGoogleEmail(ctx),
+                email, SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getPrefGroupId(ctx));
+        mFirebaseInvites.push().setValue(newInvite);
     }
 
     /**

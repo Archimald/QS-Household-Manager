@@ -1,5 +1,6 @@
 package edu.augustana.quadsquad.householdmanager;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,7 +13,6 @@ import android.view.View.OnClickListener;
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
-import com.google.android.gms.appinvite.AppInvite;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.auth.api.Auth;
@@ -22,12 +22,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static edu.augustana.quadsquad.householdmanager.R.id.sign_in_button;
+
+//import com.google.android.gms.appinvite.AppInvite;
+//import com.google.api.services.people.v1.People;
 
 /**
  * A login screen that offers login via email/password.
@@ -73,12 +75,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 .requestEmail()
                 .requestServerAuthCode(getString(R.string.server_client_id))
                 .requestIdToken(getString(R.string.server_client_id))
+                .requestScopes(new Scope("https://www.googleapis.com/auth/contacts.readonly"))
                 .build();
 
         google_api_client = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .addApi(AppInvite.API).enableAutoManage(this, this)
+                //.addApi(AppInvite.API).enableAutoManage(this, this)
                 .build();
     }
 
@@ -161,19 +164,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private void authorizeFireBaseUser(String googleAccessToken) {
 
         mFirebase.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
+            Context ctx = getApplicationContext();
             @Override
             public void onAuthenticated(AuthData authData) {
                 Log.d(TAG, "OnAuth ran");
                 Log.d(TAG, authData.getProvider());
                 Log.d(TAG, authData.getUid());
                 SaveSharedPreference.setFirebaseUid(getApplicationContext(), authData.getUid());
+                Member newMember = new Member(authData.getProviderData().get("displayName").toString(),
+                        authData.getProvider(), SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getGoogleEmail(ctx));
 
-                Map<String, String> map = new HashMap<>();
-                map.put("provider", authData.getProvider());
-                if (authData.getProviderData().containsKey("displayName")) {
-                    map.put("displayName", authData.getProviderData().get("displayName").toString());
-                }
-                mFirebase.child("users").child(authData.getUid()).setValue(map);
+                mFirebase.child("users").child(authData.getUid()).setValue(newMember);
             }
 
             @Override
@@ -187,7 +188,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         @Override
         protected String doInBackground(String... params) {
             String email_address = params[0];
-            String scopes = "oauth2:profile email";
+            String scopes = "oauth2:profile email https://www.googleapis.com/auth/contacts.readonly";
             String token = null;
 
             try {
@@ -195,6 +196,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             } catch (IOException | GoogleAuthException e) {
                 e.printStackTrace();
             }
+
             return token;
         }
 
@@ -204,6 +206,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             Log.d(TAG, userIdToken);
             SaveSharedPreference.setGoogleOAuthToken(getApplicationContext(), userIdToken);
             authorizeFireBaseUser(userIdToken);
+
+
         }
     }
 }

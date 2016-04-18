@@ -16,9 +16,6 @@ import com.firebase.client.FirebaseError;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
 
-import java.util.HashMap;
-import java.util.Map;
-
 //import com.google.android.gms.appinvite.AppInviteInvitation;
 
 public class NewGroupActivity extends AppCompatActivity {
@@ -122,19 +119,17 @@ public class NewGroupActivity extends AppCompatActivity {
     private void authorizeFireBaseUser(String googleAccessToken) {
 
         mFirebase.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
+            Context ctx = getApplicationContext();
             @Override
             public void onAuthenticated(AuthData authData) {
                 Log.d(TAG, "OnAuth ran");
                 Log.d(TAG, authData.getProvider());
                 Log.d(TAG, authData.getUid());
                 SaveSharedPreference.setFirebaseUid(getApplicationContext(), authData.getUid());
+                Member newMember = new Member(authData.getProviderData().get("displayName").toString(),
+                        authData.getProvider(), SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getGoogleEmail(ctx));
 
-                Map<String, String> map = new HashMap<>();
-                map.put("provider", authData.getProvider());
-                if (authData.getProviderData().containsKey("displayName")) {
-                    map.put("displayName", authData.getProviderData().get("displayName").toString());
-                }
-                mFirebase.child("users").child(authData.getUid()).setValue(map);
+                mFirebase.child("users").child(authData.getUid()).setValue(newMember);
             }
 
             @Override

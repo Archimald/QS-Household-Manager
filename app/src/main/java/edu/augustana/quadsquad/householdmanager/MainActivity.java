@@ -38,9 +38,6 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
@@ -55,7 +52,7 @@ public class MainActivity extends AppCompatActivity
 
     CircleImageView profilePic;
     TextView user_name;
-    TextView gemail_id;
+    TextView housename_txt;
 
     Firebase mFirebase;
 
@@ -112,9 +109,10 @@ public class MainActivity extends AppCompatActivity
 
         profilePic = (CircleImageView) headerLayout.findViewById(R.id.profile_pic);
         user_name = (TextView) headerLayout.findViewById(R.id.user_name);
-        gemail_id = (TextView) headerLayout.findViewById(R.id.textview_email);
+        housename_txt = (TextView) headerLayout.findViewById(R.id.textview_email);
 
         setPersonalInfo();
+        navigationView.getMenu().getItem(0).setChecked(true);
 
     }
 
@@ -283,6 +281,24 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        //Post groupReference to users tree
+        Query userQuery = mFirebase.child("users").orderByChild("email").equalTo(SaveSharedPreference.getGoogleEmail(context));
+        userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChildren()) {
+                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                    Firebase userRef = firstChild.getRef();
+                    userRef.child("groupReferal").setValue("");
+                }
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
         SaveSharedPreference.setHasGroup(context, false);
         SaveSharedPreference.setGroupId(context,"");
         Intent intent = new Intent(this, GroupActivity.class);
@@ -299,33 +315,31 @@ public class MainActivity extends AppCompatActivity
 
 
         String displayName = SaveSharedPreference.getGoogleDisplayName(ctx);
-        String email = SaveSharedPreference.getGoogleEmail(ctx);
+        String houseName = SaveSharedPreference.getHouseName(ctx);
         String photoURL = SaveSharedPreference.getGooglePictureUrl(ctx);
 
         if (!photoURL.equals("")) {
             Picasso.with(getApplicationContext()).load(photoURL).fit().into(profilePic);
         }
         user_name.setText(displayName);
-        gemail_id.setText(email);
+        housename_txt.setText(houseName);
 
     }
 
     private void authorizeFireBaseUser(String googleAccessToken) {
 
         mFirebase.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
+            Context ctx = getApplicationContext();
             @Override
             public void onAuthenticated(AuthData authData) {
                 Log.d(TAG, "OnAuth ran");
                 Log.d(TAG, authData.getProvider());
                 Log.d(TAG, authData.getUid());
                 SaveSharedPreference.setFirebaseUid(getApplicationContext(), authData.getUid());
+                Member newMember = new Member(authData.getProviderData().get("displayName").toString(),
+                        authData.getProvider(), SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getGoogleEmail(ctx));
 
-                Map<String, String> map = new HashMap<>();
-                map.put("provider", authData.getProvider());
-                if (authData.getProviderData().containsKey("displayName")) {
-                    map.put("displayName", authData.getProviderData().get("displayName").toString());
-                }
-                mFirebase.child("users").child(authData.getUid()).setValue(map);
+                mFirebase.child("users").child(authData.getUid()).setValue(newMember);
             }
 
             @Override
