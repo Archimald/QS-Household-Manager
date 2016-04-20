@@ -46,4 +46,8 @@ public class Invite {
     }
 
     public String getGroupReferal() { return groupReferal;}
+
+    public String getToText() { return toText;}
+
+    public boolean getDismissed() {return dismissed;}
 }

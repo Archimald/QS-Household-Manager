@@ -8,6 +8,8 @@ public class Group {
     public String ownerEmail;
     public String ownerToken;
 
+    public Group() {}
+
     public Group(String hn, String oe, String ot){
         houseName = hn;
         ownerEmail =oe;
@@ -15,7 +17,7 @@ public class Group {
 
     }
 
-    public String getHousename(){
+    public String getHouseName(){
         return houseName;
     }
     public String getOwnerEmail() {

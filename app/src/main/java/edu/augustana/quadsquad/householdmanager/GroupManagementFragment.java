@@ -213,6 +213,7 @@ public class GroupManagementFragment extends Fragment {
     private void postInvite(String email) {
         Context ctx = getContext();
         Firebase mFirebaseInvites = new Firebase("https://household-manager-136.firebaseio.com/invites");
+        Log.d("Post invite: ", email);
         Invite newInvite = new Invite(SaveSharedPreference.getHouseName(ctx), SaveSharedPreference.getGoogleEmail(ctx),
                 email, SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getPrefGroupId(ctx));
         mFirebaseInvites.push().setValue(newInvite);
