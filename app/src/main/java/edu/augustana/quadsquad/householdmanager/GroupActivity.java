@@ -55,7 +55,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         Toolbar toolbar = (Toolbar) findViewById(R.id.group_toolbar);
         setSupportActionBar(toolbar);
 
-        Firebase.setAndroidContext(this);
+        Firebase.setAndroidContext(getApplicationContext());
 
         mFirebase = new Firebase("https://household-manager-136.firebaseio.com");
         mFirebase.addAuthStateListener(new Firebase.AuthStateListener() {
@@ -82,19 +82,26 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         invitesRecyclerView = (RecyclerView) findViewById(R.id.invites_recycler_view);
         assert invitesRecyclerView != null;
         invitesRecyclerView.setHasFixedSize(true);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        invitesRecyclerView.setLayoutManager(llm);
+        invitesRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+
         String email = SaveSharedPreference.getGoogleEmail(getApplicationContext());
 
         final Query invitesRef = mFirebase.child("invites").orderByChild("toText")
-                .startAt(email).endAt(email);
+                .equalTo(email);
 
 
+        Log.d("Recycler", "Adapter recreated");
         mAdapter = new FirebaseRecyclerAdapter<Invite, InviteViewHolder>(Invite.class, R.layout.invite_card, InviteViewHolder.class, invitesRef) {
 
             @Override
+            public int getItemCount() {
+                Log.d("Recycler", "Getting item count: " + super.getItemCount());
+                return super.getItemCount();
+            }
+
+            @Override
             protected void populateViewHolder(final InviteViewHolder inviteViewHolder, final Invite invite, int i) {
+                Log.d("Recycler", "populateViewHolder called");
                 final Firebase ref = this.getRef(i);
                 inviteViewHolder.key = this.getRef(i).getKey();
                 inviteViewHolder.vHouseName.setText(invite.houseName);
@@ -177,7 +184,22 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         };
 
         invitesRecyclerView.setAdapter(mAdapter);
-        mAdapter.notifyDataSetChanged();
+
+
+
+        /*invitesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });*/
+
+
 
 
     }

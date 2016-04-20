@@ -29,7 +29,6 @@ public class NewGroupActivity extends AppCompatActivity {
     GoogleApiClient google_api_client;
     GoogleSignInOptions gso;
     Button createGrp;
-    Button invitesBtn;
     EditText groupName;
 
     @Override
@@ -53,7 +52,6 @@ public class NewGroupActivity extends AppCompatActivity {
 
         groupName = (EditText) findViewById(R.id.editText);
         createGrp = (Button) toolbar.findViewById(R.id.toolbar_save);
-        invitesBtn = (Button) findViewById(R.id.invite_button);
 
         Firebase.setAndroidContext(this);
 
@@ -119,13 +117,6 @@ public class NewGroupActivity extends AppCompatActivity {
                 finish();
 
 
-            }
-        });
-
-        invitesBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //onInviteClicked();
             }
         });
 

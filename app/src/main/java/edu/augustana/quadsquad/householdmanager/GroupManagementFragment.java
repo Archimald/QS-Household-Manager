@@ -90,16 +90,16 @@ public class GroupManagementFragment extends Fragment {
 
         Firebase.setAndroidContext(getContext());
         ref = new Firebase("https://household-manager-136.firebaseio.com");
-        ref.addAuthStateListener(new Firebase.AuthStateListener() {
+        /*ref.addAuthStateListener(new Firebase.AuthStateListener() {
             @Override
             public void onAuthStateChanged(AuthData authData) {
                 boolean isAuthed = authData != null;
                 Log.d("IsAuthed", String.valueOf(isAuthed));
-                if (!isAuthed) {
+                if (!isAuthed && SaveSharedPreference.getIsLoggedIn(getContext())) {
                     authorizeFireBaseUser(SaveSharedPreference.getGoogleOauthToken(getContext()));
                 }
             }
-        });
+        });*/
 
 
     }
