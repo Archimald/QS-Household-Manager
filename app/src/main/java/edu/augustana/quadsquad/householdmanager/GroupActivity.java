@@ -186,18 +186,19 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
         invitesRecyclerView.setAdapter(mAdapter);
 
 
-
-        /*invitesRef.addValueEventListener(new ValueEventListener() {
+        invitesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mAdapter.notifyDataSetChanged();
+                if (mAdapter.getItemCount() == 0) {
+                    mAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
 
             }
-        });*/
+        });
 
 
 
