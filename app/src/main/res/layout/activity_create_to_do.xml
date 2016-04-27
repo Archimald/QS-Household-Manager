@@ -44,6 +44,7 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingStart="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
@@ -57,7 +58,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/task"
-                android:inputType="textEmailSubject"
+                android:inputType="textCapSentences"
                 android:textSize="24sp" />
 
         </android.support.design.widget.TextInputLayout>
@@ -73,7 +74,7 @@
 
         <ListView
             android:id="@+id/todo_assign_list"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="84dp"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
@@ -97,7 +98,8 @@
             android:id="@+id/todo_due_date_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="datetime"
+            android:focusable="false"
+            android:inputType="none"
             android:textSize="16sp" />
 
         <TextView
@@ -114,7 +116,8 @@
             android:id="@+id/todo_due_time_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="datetime"
+            android:focusable="false"
+            android:inputType="none"
             android:textSize="16sp" />
 
 

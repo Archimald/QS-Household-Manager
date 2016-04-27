@@ -5,6 +5,7 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -47,6 +48,19 @@ public class CreateToDoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_to_do);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.new_group_toolbar);
+        setSupportActionBar(toolbar);
+
+        assert toolbar != null;
+        toolbar.setNavigationIcon(R.drawable.ic_close_white_24dp);
+        toolbar.setTitle("New Todo Item");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
         final Calendar mCalendar = Calendar.getInstance();
 
         etTask = (EditText) findViewById(R.id.todo_task);
@@ -62,7 +76,8 @@ public class CreateToDoActivity extends AppCompatActivity {
         final SimpleDateFormat sdfTime = new SimpleDateFormat("h:mm a");
         String currentDate = sdfDate.format(mCalendar.getTime());
         String currentTime = sdfTime.format(mCalendar.getTime());
-        etDate.setText(currentDate);
+        etDate.setHint(currentDate);
+        etTime.setHint(currentTime);
 
         Firebase.setAndroidContext(getApplicationContext());
         ref = new Firebase("https://household-manager-136.firebaseio.com");
@@ -97,8 +112,9 @@ public class CreateToDoActivity extends AppCompatActivity {
         lvAssign.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                view.setSelected(true);
+                //view.setSelected(true);
                 selectedMember = memberArrayList.get(position);
+                parent.setSelection(position);
             }
         });
 
@@ -118,7 +134,9 @@ public class CreateToDoActivity extends AppCompatActivity {
         etDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new DatePickerDialog(CreateToDoActivity.this, date, mCalendar.get(Calendar.YEAR), mCalendar.get(Calendar.MONTH), mCalendar.get(Calendar.DAY_OF_MONTH)).show();
+                DatePickerDialog datePicker = new DatePickerDialog(CreateToDoActivity.this, R.style.DialogTheme, date, mCalendar.get(Calendar.YEAR), mCalendar.get(Calendar.MONTH), mCalendar.get(Calendar.DAY_OF_MONTH));
+                datePicker.setTitle("Pick Due Date");
+                datePicker.show();
 
             }
         });
@@ -137,7 +155,9 @@ public class CreateToDoActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                new TimePickerDialog(CreateToDoActivity.this, time, mCalendar.get(Calendar.HOUR_OF_DAY), mCalendar.get(Calendar.MINUTE), false).show();
+                TimePickerDialog timePicker = new TimePickerDialog(CreateToDoActivity.this, R.style.DialogTheme, time, mCalendar.get(Calendar.HOUR_OF_DAY), mCalendar.get(Calendar.MINUTE), false);
+                timePicker.setTitle("Pick Due Time");
+                timePicker.show();
             }
         });
 

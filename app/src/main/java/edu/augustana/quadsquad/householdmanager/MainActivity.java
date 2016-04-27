@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -46,13 +47,23 @@ public class MainActivity extends AppCompatActivity
 
 
     private static final String TAG = "Main Activity";
+    private static final String KEY_STATE_TITLE = "kst";
+    private static final String KEY_SELECTED_MENU = "ksm";
     GoogleApiClient google_api_client;
     GoogleSignInOptions gso;
+
+    ActionBarDrawerToggle toggle;
+    DrawerLayout drawer;
+
+    Fragment fragment = null;
+    Class fragmentClass = null;
 
 
     CircleImageView profilePic;
     TextView user_name;
     TextView housename_txt;
+
+    String selectedMenu = "corkboard";
 
     Firebase mFirebase;
     FloatingActionButton fab;
@@ -113,13 +124,15 @@ public class MainActivity extends AppCompatActivity
         }
         fab.hide();
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+
+        toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         assert drawer != null;
         drawer.addDrawerListener(toggle);
-        toggle.syncState();
+
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         assert navigationView != null;
@@ -135,14 +148,24 @@ public class MainActivity extends AppCompatActivity
         setPersonalInfo();
         navigationView.getMenu().getItem(0).setChecked(true);
 
+        if (savedInstanceState != null) {
+
+            setTitle(savedInstanceState.getCharSequence(KEY_STATE_TITLE));
+            selectedMenu = savedInstanceState.getString(KEY_SELECTED_MENU);
+
+        }
+
+
+
     }
+
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
-
-
-        // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
+        CharSequence title = getTitle();
+        savedInstanceState.putCharSequence(KEY_STATE_TITLE, title);
+        savedInstanceState.putString(KEY_SELECTED_MENU, selectedMenu);
     }
 
     @Override
@@ -184,21 +207,16 @@ public class MainActivity extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        Fragment fragment = null;
-        Class fragmentClass = null;
+
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_corkboard) {
 
-            fragmentClass = CorkboardFragment.class;
-            fab.hide();
+            startCorkboard();
 
         } else if (id == R.id.nav_todo) {
-            fragmentClass = ToDoFragment.class;
-
-            fab.setOnClickListener(todoListener);
-            fab.show();
+            startTodo();
 
         } else if (id == R.id.nav_bills) {
 
@@ -207,7 +225,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_group_management) {
-            fragmentClass = GroupManagementFragment.class;
+            startGroupManagement();
 
         } else if (id == R.id.nav_logout) {
             signOut();
@@ -216,6 +234,13 @@ public class MainActivity extends AppCompatActivity
             leaveGroup();
         }
 
+        item.setChecked(true);
+
+
+        return true;
+    }
+
+    private void startFragment() {
         try {
             if (fragmentClass != null) {
                 fragment = (Fragment) fragmentClass.newInstance();
@@ -223,24 +248,45 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Insert the fragment by replacing any existing fragment
         if (fragment != null) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.rlContent, fragment).commit();
-        }
-
-        item.setChecked(true);
-        setTitle(item.getTitle());
-        if (item.getTitle().equals("Group Management")) {
-            setTitle(SaveSharedPreference.getHouseName(getApplicationContext()));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer != null) {
             drawer.closeDrawer(GravityCompat.START);
         }
-        return true;
+    }
+
+    private void startGroupManagement() {
+        fragmentClass = GroupManagementFragment.class;
+
+        selectedMenu = "groupManagement";
+
+        startFragment();
+        setTitle(SaveSharedPreference.getHouseName(getApplicationContext()));
+    }
+
+    private void startTodo() {
+        fragmentClass = ToDoFragment.class;
+
+        fab.setOnClickListener(todoListener);
+        fab.show();
+
+        selectedMenu = "todo";
+
+        startFragment();
+        setTitle("To-do List");
+    }
+
+    private void startCorkboard() {
+        fragmentClass = CorkboardFragment.class;
+        fab.hide();
+        selectedMenu = "corkboard";
+
+        startFragment();
+        setTitle("Corkboard");
     }
 
     private void buildNewGoogleApiClient() {
@@ -374,6 +420,26 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onFragmentInteraction(Uri uri) {
+    }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        toggle.syncState();
+        Log.d(TAG, selectedMenu);
+        switch (selectedMenu) {
+            case "corkboard":
+                startCorkboard();
+                break;
+            case "todo":
+                startTodo();
+                break;
+            case "groupManagement":
+                startGroupManagement();
+                break;
+            default:
+                startCorkboard();
+        }
     }
 }
 

@@ -56,7 +56,8 @@
             android:name=".CreateToDoActivity"
             android:label="New ToDo Item"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden" />
     </application>
 
 </manifest>
