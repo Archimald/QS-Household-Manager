@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="edu.augustana.quadsquad.householdmanager.CorkboardFragment">
+    tools:context=".model.fragment.CorkboardFragment">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -12,7 +12,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp">
+        android:padding="4dp">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/corkboard_recycler_view"

@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +18,12 @@ import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Group;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Invite;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
 
 //import com.google.android.gms.appinvite.AppInviteInvitation;
 

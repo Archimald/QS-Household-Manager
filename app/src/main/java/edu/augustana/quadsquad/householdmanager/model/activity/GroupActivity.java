@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +31,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
+
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Invite;
+import edu.augustana.quadsquad.householdmanager.data.viewholder.InviteViewHolder;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
 
 public class GroupActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
@@ -103,24 +109,24 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
             protected void populateViewHolder(final InviteViewHolder inviteViewHolder, final Invite invite, int i) {
                 Log.d("Recycler", "populateViewHolder called");
                 final Firebase ref = this.getRef(i);
-                inviteViewHolder.key = this.getRef(i).getKey();
-                inviteViewHolder.vHouseName.setText(invite.houseName);
-                inviteViewHolder.vFromText.setText(String.format("From %s", invite.fromText));
+                inviteViewHolder.setKey(this.getRef(i).getKey());
+                inviteViewHolder.getvHouseName().setText(invite.getHouseName());
+                inviteViewHolder.getvFromText().setText(String.format("From %s", invite.getFromText()));
                 final String groupRefString = invite.getGroupReferal();
-                if (!invite.contactPicURI.equals("")) {
+                if (!invite.getContactPicURI().equals("")) {
                     Picasso.with(getApplicationContext())
-                            .load(invite.contactPicURI).error(R.drawable.blank_conact)
+                            .load(invite.getContactPicURI()).error(R.drawable.blank_conact)
                             .placeholder(R.drawable.blank_conact)
                             .fit()
-                            .into(inviteViewHolder.iProfile);
+                            .into(inviteViewHolder.getiProfile());
                 }
-                inviteViewHolder.bDismiss.setOnClickListener(new View.OnClickListener() {
+                inviteViewHolder.getbDismiss().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         ref.removeValue();
                     }
                 });
-                inviteViewHolder.bJoin.setOnClickListener(new View.OnClickListener() {
+                inviteViewHolder.getbJoin().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
 
@@ -139,7 +145,7 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
 
 
                                     String newGroupReferralKey = groupRef.getKey();
-                                    String newHouseName = invite.houseName;
+                                    String newHouseName = invite.getHouseName();
                                     SaveSharedPreference.setGroupId(ctx, newGroupReferralKey);
                                     SaveSharedPreference.setHouseName(ctx, newHouseName);
                                     SaveSharedPreference.setHasGroup(ctx, true);

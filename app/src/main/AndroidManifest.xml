@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".model.activity.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -31,7 +31,7 @@
                 android:value="@integer/google_play_services_version" />
         </activity>
         <activity
-            android:name=".SplashActivity"
+            android:name=".model.activity.SplashActivity"
             android:screenOrientation="portrait"
             android:theme="@style/SplashTheme">
             <intent-filter>
@@ -41,21 +41,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".model.activity.LoginActivity"
             android:label="@string/title_activity_login" />
         <activity
-            android:name=".GroupActivity"
+            android:name=".model.activity.GroupActivity"
             android:label="Invites"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".NewGroupActivity"
+            android:name=".model.activity.NewGroupActivity"
             android:label="New Group"
-            android:parentActivityName=".GroupActivity"
+            android:parentActivityName=".model.activity.GroupActivity"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".CreateToDoActivity"
+            android:name=".model.activity.CreateToDoActivity"
             android:label="New ToDo Item"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".model.activity.MainActivity"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
     </application>

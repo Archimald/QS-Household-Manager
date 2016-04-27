@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.data.firebaseobjects;
 
 import java.util.Calendar;
 

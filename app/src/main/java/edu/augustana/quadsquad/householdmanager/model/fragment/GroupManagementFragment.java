@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.fragment;
 
 import android.content.Context;
 import android.net.Uri;
@@ -23,6 +23,10 @@ import com.firebase.ui.FirebaseListAdapter;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Invite;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
 //import com.google.android.gms.appinvite.AppInviteInvitation;
 //import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 //import com.google.api.services.people.v1.People;
@@ -175,7 +179,7 @@ public class GroupManagementFragment extends Fragment {
             @Override
             protected void populateView(View view, Invite invite, int position) {
 
-                ((TextView) view.findViewById(R.id.name_view)).setText(invite.toText);
+                ((TextView) view.findViewById(R.id.name_view)).setText(invite.getToText());
 
 
             }

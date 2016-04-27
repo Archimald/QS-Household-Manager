@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.fragment;
 
 import android.content.Context;
 import android.net.Uri;
@@ -19,6 +19,9 @@ import com.squareup.picasso.Picasso;
 import java.text.SimpleDateFormat;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.ToDoItem;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
 
 
 /**

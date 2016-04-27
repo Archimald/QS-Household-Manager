@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.activity;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.ToDoItem;
 
 public class CreateToDoActivity extends AppCompatActivity {
 

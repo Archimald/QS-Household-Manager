@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.activity;
 
 import android.content.Context;
 import android.content.Intent;
@@ -40,6 +40,13 @@ import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.model.fragment.ToDoFragment;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.CorkboardNote;
+import edu.augustana.quadsquad.householdmanager.model.fragment.CorkboardFragment;
+import edu.augustana.quadsquad.householdmanager.model.fragment.GroupManagementFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,

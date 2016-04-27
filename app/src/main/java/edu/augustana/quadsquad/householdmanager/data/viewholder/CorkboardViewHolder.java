@@ -1,9 +1,11 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.data.viewholder;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import edu.augustana.quadsquad.householdmanager.R;
 
 /**
  * Created by Luke Currie on 4/26/2016.
@@ -21,4 +23,8 @@ public class CorkboardViewHolder  extends RecyclerView.ViewHolder {
 
 
     }
+
+    public TextView getvMessage(){return vMessage;}
+    public TextView getvFromName(){return vFromName;}
+    public Button getbDelete() {return bDelete; }
 }

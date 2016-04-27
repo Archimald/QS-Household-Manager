@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.model.fragment;
 
 import android.content.Context;
 import android.net.Uri;
@@ -23,6 +23,13 @@ import com.firebase.ui.FirebaseListAdapter;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 
 import java.util.List;
+
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.CorkboardNote;
+import edu.augustana.quadsquad.householdmanager.data.viewholder.CorkboardViewHolder;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Invite;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
+import edu.augustana.quadsquad.householdmanager.R;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
 
 
 /**
@@ -157,10 +164,10 @@ public class CorkboardFragment extends Fragment {
 
                 final Firebase cardRef=this.getRef(position);
 
-                view.vMessage.setText(note.getMessage());
-                view.vFromName.setText(note.getFromText());
+                view.getvMessage().setText(note.getMessage());
+                view.getvFromName().setText(note.getFromText());
 
-                view.bDelete.setOnClickListener(new View.OnClickListener() {
+                view.getbDelete().setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         cardRef.removeValue();

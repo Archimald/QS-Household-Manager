@@ -1,4 +1,4 @@
-package edu.augustana.quadsquad.householdmanager;
+package edu.augustana.quadsquad.householdmanager.data.firebaseobjects;
 
 /**
  * Created by micha on 4/18/2016.
