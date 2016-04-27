@@ -52,6 +52,11 @@
             android:label="New Group"
             android:parentActivityName=".GroupActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".CreateToDoActivity"
+            android:label="New ToDo Item"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

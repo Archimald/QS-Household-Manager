@@ -42,7 +42,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
-        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener {
+        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener, ToDoFragment.OnFragmentInteractionListener {
 
 
     private static final String TAG = "Main Activity";
@@ -55,6 +55,14 @@ public class MainActivity extends AppCompatActivity
     TextView housename_txt;
 
     Firebase mFirebase;
+    FloatingActionButton fab;
+    View.OnClickListener todoListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent newTodoIntent = new Intent(MainActivity.this, CreateToDoActivity.class);
+            startActivity(newTodoIntent);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +89,8 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
             fab.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -123,7 +132,6 @@ public class MainActivity extends AppCompatActivity
         // Always call the superclass so it can save the view hierarchy state
         super.onSaveInstanceState(savedInstanceState);
     }
-
 
     @Override
     public void onBackPressed() {
@@ -172,7 +180,11 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_corkboard) {
 
             fragmentClass = CorkboardFragment.class;
+
         } else if (id == R.id.nav_todo) {
+            fragmentClass = ToDoFragment.class;
+
+            fab.setOnClickListener(todoListener);
 
         } else if (id == R.id.nav_bills) {
 
@@ -232,13 +244,6 @@ public class MainActivity extends AppCompatActivity
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
     }
-
-
-
-
-
-
-
 
     private void signOut() {
         Auth.GoogleSignInApi.signOut(google_api_client).setResultCallback(
@@ -309,10 +314,6 @@ public class MainActivity extends AppCompatActivity
         finish();
     }
 
-
-
-
-
     private void setPersonalInfo() {
         Context ctx = getApplicationContext();
 
@@ -351,7 +352,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
-
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
