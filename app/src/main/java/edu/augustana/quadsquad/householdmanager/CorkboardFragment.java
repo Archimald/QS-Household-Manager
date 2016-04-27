@@ -3,10 +3,26 @@ package edu.augustana.quadsquad.householdmanager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
+import com.firebase.ui.FirebaseListAdapter;
+import com.firebase.ui.FirebaseRecyclerAdapter;
+
+import java.util.List;
 
 
 /**
@@ -27,7 +43,20 @@ public class CorkboardFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    private final String TAG = "Corkboard";
+
+    private Button btnAddNote;
+
     private OnFragmentInteractionListener mListener;
+
+    private Firebase ref;
+    private FirebaseListAdapter<Member> memberAdapter;
+    private FirebaseListAdapter<Invite> inviteAdapter;
+
+    private StaggeredGridLayoutManager sglm;
+    private FirebaseRecyclerAdapter<CorkboardNote, CorkboardViewHolder> noteAdapter;
+    private RecyclerView rv;
+    private List<CorkboardNote> notesList;
 
     public CorkboardFragment() {
         // Required empty public constructor
@@ -58,6 +87,8 @@ public class CorkboardFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        Firebase.setAndroidContext(getContext());
+        ref = new Firebase("https://household-manager-136.firebaseio.com");
     }
 
     @Override
@@ -65,6 +96,8 @@ public class CorkboardFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_corkboard, container, false);
+
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -89,6 +122,108 @@ public class CorkboardFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        btnAddNote = (Button) getView().findViewById(R.id.create_card);
+        btnAddNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onNewNoteClicked();
+            }
+        });
+
+        rv = (RecyclerView) view.findViewById(R.id.corkboard_recycler_view);
+        rv.setHasFixedSize(true);
+
+        sglm = new StaggeredGridLayoutManager(3, 1);
+        rv.setLayoutManager(sglm);
+
+        bindRecyclerView();
+
+    }
+
+    private void  bindRecyclerView() {
+        Firebase notesRef = ref.child("corkboardNotes");
+        String groupID = SaveSharedPreference.getPrefGroupId(getContext());
+        Query noteQuery = notesRef.orderByChild("groupId").startAt(groupID).endAt(groupID);
+
+        noteAdapter = new FirebaseRecyclerAdapter<CorkboardNote, CorkboardViewHolder>(CorkboardNote.class, R.layout.corkboard_card, CorkboardViewHolder.class, noteQuery) {
+
+            @Override
+            protected void populateViewHolder(final CorkboardViewHolder view, final CorkboardNote note, int position) {
+
+                view.vMessage.setText(note.getMessage());
+                view.vFromName.setText(note.getFromText());
+
+                view.bDelete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ref.removeValue();
+                    }
+                });
+
+
+//                String photoURL = member.getContactPicURI();
+//                CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
+//
+//                if (!photoURL.equals("")) {
+//                    Picasso.with(getContext()).load(photoURL).fit().into(avatar);
+//                }
+
+
+            }
+        };
+        rv.setAdapter(noteAdapter);
+        noteAdapter.notifyDataSetChanged();
+
+    }
+    private void onNewNoteClicked() {
+        new MaterialDialog.Builder(getContext())
+                .title("New Note")
+                .content("Enter Message")
+                .inputType(InputType.TYPE_CLASS_TEXT)
+                .input("Message", "", false, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                        postNote(input.toString());
+                    }
+                }).show();
+    }
+
+    private void postNote(String message) {
+        Context ctx = getContext();
+        Firebase mCorkboardNotes = new Firebase("https://household-manager-136.firebaseio.com/CorkboardNotes");
+        Log.d("Post note: ", message);
+        CorkboardNote newNote = new CorkboardNote(message, SaveSharedPreference.getGoogleEmail(ctx),
+                SaveSharedPreference.getPrefGroupId(ctx), SaveSharedPreference.getGoogleEmail(ctx));
+        mCorkboardNotes.push().setValue(newNote);
+    }
+
+    private void authorizeFireBaseUser(String googleAccessToken) {
+
+        ref.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
+            Context ctx = getContext();
+
+            @Override
+            public void onAuthenticated(AuthData authData) {
+                Log.d(TAG, "OnAuth ran");
+                Log.d(TAG, authData.getProvider());
+                Log.d(TAG, authData.getUid());
+                SaveSharedPreference.setFirebaseUid(getContext(), authData.getUid());
+                Member newMember = new Member(authData.getProviderData().get("displayName").toString(),
+                        authData.getProvider(), SaveSharedPreference.getGooglePictureUrl(ctx), SaveSharedPreference.getGoogleEmail(ctx));
+
+                ref.child("users").child(authData.getUid()).setValue(newMember);
+            }
+
+            @Override
+            public void onAuthenticationError(FirebaseError firebaseError) {
+                Log.e("Auth error", firebaseError.getDetails());
+            }
+        });
     }
 
     /**

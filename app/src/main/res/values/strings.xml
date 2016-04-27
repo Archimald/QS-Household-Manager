@@ -52,4 +52,7 @@
     <string name="due_by_2">Due By</string>
     <string name="at">At</string>
     <string name="assign">Assign</string>
+    <string name="corkboard_message_dummy">Test Message</string>
+    <string name="from_dummy_name">Test McTester</string>
+    <string name="delete_corkboard_card">Delete Note</string>
 </resources>
