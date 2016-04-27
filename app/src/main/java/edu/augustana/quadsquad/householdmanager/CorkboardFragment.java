@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -12,7 +13,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.firebase.client.AuthData;
@@ -45,7 +45,7 @@ public class CorkboardFragment extends Fragment {
 
     private final String TAG = "Corkboard";
 
-    private Button btnAddNote;
+    private FloatingActionButton btnAddNote;
 
     private OnFragmentInteractionListener mListener;
 
@@ -127,18 +127,18 @@ public class CorkboardFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        btnAddNote = (Button) getView().findViewById(R.id.create_card);
+        btnAddNote = (FloatingActionButton) getView().findViewById(R.id.create_card);
         btnAddNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onNewNoteClicked();
+               onNewNoteClicked();
             }
         });
 
         rv = (RecyclerView) view.findViewById(R.id.corkboard_recycler_view);
         rv.setHasFixedSize(true);
 
-        sglm = new StaggeredGridLayoutManager(3, 1);
+        sglm = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         rv.setLayoutManager(sglm);
 
         bindRecyclerView();
@@ -146,7 +146,7 @@ public class CorkboardFragment extends Fragment {
     }
 
     private void  bindRecyclerView() {
-        Firebase notesRef = ref.child("corkboardNotes");
+        Firebase notesRef = ref.child("corkboardnotes");
         String groupID = SaveSharedPreference.getPrefGroupId(getContext());
         Query noteQuery = notesRef.orderByChild("groupId").startAt(groupID).endAt(groupID);
 
@@ -155,13 +155,15 @@ public class CorkboardFragment extends Fragment {
             @Override
             protected void populateViewHolder(final CorkboardViewHolder view, final CorkboardNote note, int position) {
 
+                final Firebase cardRef=this.getRef(position);
+
                 view.vMessage.setText(note.getMessage());
                 view.vFromName.setText(note.getFromText());
 
                 view.bDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        ref.removeValue();
+                        cardRef.removeValue();
                     }
                 });
 
@@ -180,7 +182,7 @@ public class CorkboardFragment extends Fragment {
         noteAdapter.notifyDataSetChanged();
 
     }
-    private void onNewNoteClicked() {
+    protected void onNewNoteClicked() {
         new MaterialDialog.Builder(getContext())
                 .title("New Note")
                 .content("Enter Message")
@@ -195,9 +197,9 @@ public class CorkboardFragment extends Fragment {
 
     private void postNote(String message) {
         Context ctx = getContext();
-        Firebase mCorkboardNotes = new Firebase("https://household-manager-136.firebaseio.com/CorkboardNotes");
+        Firebase mCorkboardNotes = new Firebase("https://household-manager-136.firebaseio.com/corkboardnotes");
         Log.d("Post note: ", message);
-        CorkboardNote newNote = new CorkboardNote(message, SaveSharedPreference.getGoogleEmail(ctx),
+        CorkboardNote newNote = new CorkboardNote(message, SaveSharedPreference.getGoogleDisplayName(ctx),
                 SaveSharedPreference.getPrefGroupId(ctx), SaveSharedPreference.getGoogleEmail(ctx));
         mCorkboardNotes.push().setValue(newNote);
     }

@@ -64,6 +64,17 @@ public class MainActivity extends AppCompatActivity
         }
     };
 
+
+
+    private void postNote(String message) {
+        Context ctx = getApplicationContext();
+        Firebase mCorkboardNotes = new Firebase("https://household-manager-136.firebaseio.com/corkboardNotes");
+        Log.d("Post note: ", message);
+        CorkboardNote newNote = new CorkboardNote(message, SaveSharedPreference.getGoogleEmail(ctx),
+                SaveSharedPreference.getPrefGroupId(ctx), SaveSharedPreference.getGoogleEmail(ctx));
+        mCorkboardNotes.push().setValue(newNote);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +111,7 @@ public class MainActivity extends AppCompatActivity
                 }
             });
         }
+        fab.hide();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
@@ -180,11 +192,13 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_corkboard) {
 
             fragmentClass = CorkboardFragment.class;
+            fab.hide();
 
         } else if (id == R.id.nav_todo) {
             fragmentClass = ToDoFragment.class;
 
             fab.setOnClickListener(todoListener);
+            fab.show();
 
         } else if (id == R.id.nav_bills) {
 
