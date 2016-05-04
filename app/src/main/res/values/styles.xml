@@ -33,4 +33,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="AppTheme.Overdue" parent="AppTheme">
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@color/colorError</item>
+        <item name="android:textColor">@color/colorIcons</item>
+    </style>
+
 </resources>

@@ -1,10 +1,13 @@
 package edu.augustana.quadsquad.householdmanager.model.fragment;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatCheckBox;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +20,8 @@ import com.firebase.ui.FirebaseListAdapter;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.augustana.quadsquad.householdmanager.R;
@@ -96,15 +101,45 @@ public class ToDoFragment extends Fragment {
         ref = new Firebase("https://household-manager-136.firebaseio.com");
         Firebase todoRef = ref.child("todo");
         String groupID = SaveSharedPreference.getPrefGroupId(getContext());
-        Query todoQuery = todoRef.orderByChild("groupTag").startAt(groupID).endAt(groupID);
+        final Query todoQuery = todoRef.orderByChild("groupTag").startAt(groupID).endAt(groupID).orderByChild("completed");
 
         todoAdapter = new FirebaseListAdapter<ToDoItem>(getActivity(), ToDoItem.class, R.layout.todo_item, todoQuery) {
             @Override
-            protected void populateView(View view, ToDoItem todoItem, int position) {
+            protected void populateView(View view, final ToDoItem todoItem, final int position) {
 
-                ((TextView) view.findViewById(R.id.todo_action_item)).setText(todoItem.getActionText());
-                ((TextView) view.findViewById(R.id.todo_due_date)).setText("Due: " + sdfDate.format(todoItem.getDueDate().getTime())
+                TextView mainText = (TextView) view.findViewById(R.id.todo_action_item);
+                TextView subText = (TextView) view.findViewById(R.id.todo_due_date);
+                final AppCompatCheckBox doneCheck = (AppCompatCheckBox) view.findViewById(R.id.todo_check);
+
+
+                mainText.setText(todoItem.getActionText());
+                subText.setText("Due: " + sdfDate.format(todoItem.getDueDate().getTime())
                         + " at " + sdfTime.format(todoItem.getDueDate().getTime()));
+                doneCheck.setChecked(todoItem.isCompleted());
+
+
+                Date dueDate = todoItem.getDueDate().getTime();
+                Date today = Calendar.getInstance().getTime();
+
+                Log.d("dueDate", dueDate.toString());
+                Log.d("today", today.toString());
+
+
+                if (dueDate.before(today) && !todoItem.isCompleted()) {
+                    view.setBackgroundColor(getResources().getColor(R.color.colorError));
+
+                    mainText.setTypeface(null, Typeface.BOLD);
+                    mainText.setTextColor(getResources().getColor(R.color.colorIcons));
+
+                    subText.setTextColor(getResources().getColor(R.color.colorIcons));
+                } else {
+                    view.setBackgroundColor(getResources().getColor(android.R.color.background_light));
+
+                    mainText.setTypeface(null, Typeface.NORMAL);
+                    mainText.setTextColor(getResources().getColor(R.color.colorTextPrimary));
+
+                    subText.setTextColor(getResources().getColor(R.color.colorTextSecondary));
+                }
 
 
                 String photoURL = todoItem.getAvatarUrl();
@@ -113,6 +148,14 @@ public class ToDoFragment extends Fragment {
                 if (!photoURL.equals("")) {
                     Picasso.with(getContext()).load(photoURL).fit().into(avatar);
                 }
+
+                doneCheck.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Firebase checkRef = todoAdapter.getRef(position).child("completed");
+                        checkRef.setValue(doneCheck.isChecked());
+                    }
+                });
 
 
             }
@@ -143,6 +186,7 @@ public class ToDoFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        todoAdapter.cleanup();
     }
 
     /**
