@@ -101,7 +101,8 @@ public class ToDoFragment extends Fragment {
         ref = new Firebase("https://household-manager-136.firebaseio.com");
         Firebase todoRef = ref.child("todo");
         String groupID = SaveSharedPreference.getPrefGroupId(getContext());
-        final Query todoQuery = todoRef.orderByChild("groupTag").startAt(groupID).endAt(groupID).orderByChild("completed");
+        final Query todoQuery = todoRef.orderByChild("groupTag").startAt(groupID).endAt(groupID);
+        final Query todoQuery2 = todoRef.orderByChild("completed");
 
         todoAdapter = new FirebaseListAdapter<ToDoItem>(getActivity(), ToDoItem.class, R.layout.todo_item, todoQuery) {
             @Override

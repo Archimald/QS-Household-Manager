@@ -1,9 +1,19 @@
 package edu.augustana.quadsquad.householdmanager.model.activity;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
+import android.nfc.tech.Ndef;
+import android.nfc.tech.NdefFormatable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,6 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
@@ -39,10 +50,13 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
 import edu.augustana.quadsquad.householdmanager.R;
 import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.model.fragment.FindMyRoommatesFragment;
 import edu.augustana.quadsquad.householdmanager.model.fragment.ToDoFragment;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.CorkboardNote;
 import edu.augustana.quadsquad.householdmanager.model.fragment.CorkboardFragment;
@@ -50,7 +64,7 @@ import edu.augustana.quadsquad.householdmanager.model.fragment.GroupManagementFr
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
-        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener, ToDoFragment.OnFragmentInteractionListener {
+        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener, ToDoFragment.OnFragmentInteractionListener, FindMyRoommatesFragment.OnFragmentInteractionListener {
 
 
     private static final String TAG = "Main Activity";
@@ -71,6 +85,14 @@ public class MainActivity extends AppCompatActivity
     TextView housename_txt;
 
     String selectedMenu = "corkboard";
+
+    Boolean mInWriteMode = false;
+    GroupManagementFragment groupManagementFragment;
+    NfcAdapter adapter;
+    PendingIntent pendingIntent;
+    NdefMessage ndefMessage;
+    Context groupManagementFragmentContext;
+    Activity groupManagementFragmentActivity;
 
     Firebase mFirebase;
     FloatingActionButton fab;
@@ -164,6 +186,8 @@ public class MainActivity extends AppCompatActivity
 
 
 
+        groupManagementFragment = new GroupManagementFragment();
+
     }
 
 
@@ -225,11 +249,11 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_todo) {
             startTodo();
 
-        } else if (id == R.id.nav_bills) {
+        } else if (id == R.id.nav_find_my_roommates) {
+            startFindMyRoommates();
+        } /*else if (id == R.id.nav_calendar) {
 
-        } else if (id == R.id.nav_calendar) {
-
-        } else if (id == R.id.nav_settings) {
+        } */else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_group_management) {
             startGroupManagement();
@@ -294,6 +318,15 @@ public class MainActivity extends AppCompatActivity
 
         startFragment();
         setTitle("Corkboard");
+    }
+
+    private void startFindMyRoommates() {
+        fragmentClass = FindMyRoommatesFragment.class;
+        fab.hide();
+        selectedMenu = "findMyRoommates";
+
+        startFragment();
+        setTitle("Find My Roomates");
     }
 
     private void buildNewGoogleApiClient() {
@@ -401,6 +434,7 @@ public class MainActivity extends AppCompatActivity
 
         mFirebase.authWithOAuthToken("google", googleAccessToken, new Firebase.AuthResultHandler() {
             Context ctx = getApplicationContext();
+
             @Override
             public void onAuthenticated(AuthData authData) {
                 Log.d(TAG, "OnAuth ran");
@@ -444,9 +478,17 @@ public class MainActivity extends AppCompatActivity
             case "groupManagement":
                 startGroupManagement();
                 break;
+            case "findMyRoommates":
+                startFindMyRoommates();
+                break;
             default:
                 startCorkboard();
         }
+    }
+
+    public void startWriteNfc(){
+        Intent writeIntent = new Intent(MainActivity.this, NfcWriteActivity.class);
+        startActivity(writeIntent);
     }
 }
 

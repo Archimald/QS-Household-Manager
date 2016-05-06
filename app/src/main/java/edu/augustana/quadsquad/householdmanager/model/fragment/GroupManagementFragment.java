@@ -1,7 +1,17 @@
 package edu.augustana.quadsquad.householdmanager.model.fragment;
 
+import android.annotation.TargetApi;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
+import android.nfc.tech.Ndef;
+import android.nfc.tech.NdefFormatable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -13,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.firebase.client.AuthData;
@@ -22,11 +33,15 @@ import com.firebase.client.Query;
 import com.firebase.ui.FirebaseListAdapter;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Invite;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
 import edu.augustana.quadsquad.householdmanager.R;
 import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.model.activity.MainActivity;
+import edu.augustana.quadsquad.householdmanager.model.activity.NfcWriteActivity;
 //import com.google.android.gms.appinvite.AppInviteInvitation;
 //import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 //import com.google.api.services.people.v1.People;
@@ -53,6 +68,7 @@ public class GroupManagementFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private Button btnInvites;
+    private Button btnWrite;
     private OnFragmentInteractionListener mListener;
 
     private ListView membersList;
@@ -61,6 +77,12 @@ public class GroupManagementFragment extends Fragment {
     private Firebase ref;
     private FirebaseListAdapter<Member> memberAdapter;
     private FirebaseListAdapter<Invite> inviteAdapter;
+
+    NfcAdapter adapter;
+    PendingIntent pendingIntent;
+    boolean mInWriteMode;
+    NdefMessage ndefMessage;
+    MainActivity mainActivity;
 
     public GroupManagementFragment() {
         // Required empty public constructor
@@ -104,8 +126,6 @@ public class GroupManagementFragment extends Fragment {
                 }
             }
         });*/
-
-
     }
 
     private void onInviteClicked() {
@@ -131,6 +151,7 @@ public class GroupManagementFragment extends Fragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mainActivity = new MainActivity();
         btnInvites = (Button) getView().findViewById(R.id.invite_button);
         btnInvites.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,6 +159,20 @@ public class GroupManagementFragment extends Fragment {
                 onInviteClicked();
             }
         });
+        btnWrite = (Button) getView().findViewById(R.id.writeNFC);
+        if(btnWrite != null) {
+            btnWrite.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    /*mainActivity.startWriteNfc();*/
+                    Intent writeIntent = new Intent(getActivity(), NfcWriteActivity.class);
+                    getActivity().startActivity(writeIntent);
+                }
+
+            });
+        }
+
+
 
         invitesList = (ListView) getView().findViewById(R.id.invites_list_view);
 
@@ -261,4 +296,102 @@ public class GroupManagementFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+    /*@TargetApi(21)
+    public void writeNFC(){
+        Context context = getContext();
+        adapter = NfcAdapter.getDefaultAdapter(context);
+        //Checks for NFC Hardware
+        if (adapter == null) {
+            // Stop here, we definitely need NFC
+            displayMessage("This device doesn't support NFC.");
+            getActivity().finish();
+            return;
+        }
+
+        //Checks to see if NFC is enabled
+        if (!adapter.isEnabled()) {
+            displayMessage("NFC is disabled");
+        }
+
+
+        displayMessage("Please scan tag");
+        //NFC Tag transfer: String -> NdefRecord -> NdefMessage
+        NdefRecord ndefRecord = NdefRecord.createTextRecord("en", "Test");
+        ndefMessage = new NdefMessage(new NdefRecord[]{ndefRecord});
+        //Makes NFC available for scanning
+        mainActivity.enableWriteMode();
+    }
+
+    *//*private void enableWriteMode(){
+        mInWriteMode = true;
+        pendingIntent = PendingIntent.getActivity(getContext(), 0, new Intent(getContext(), getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        IntentFilter[] filters = new IntentFilter[] { tagDetected};
+
+        adapter.enableForegroundDispatch(getActivity(), pendingIntent, filters, null);
+    }*//*
+
+    public void onNewIntent(Intent intent){
+        displayMessage("test");
+        if(mInWriteMode){
+            mInWriteMode = false;
+
+            Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            writeTag(tag);
+        }
+    }
+
+    public boolean writeTag(Tag tag){
+        try{
+            //to see if tag is already NDEF formatted
+            Ndef ndef = Ndef.get(tag);
+            if (ndef != null) {
+                ndef.connect();
+
+                //Checks if tag is write-protected
+                if(!ndef.isWritable()){
+                    displayMessage("Read-Only tag.");
+                    return false;
+                }
+
+                //Writes message to tag
+                ndef.writeNdefMessage(ndefMessage);
+                displayMessage("Tag written successfully.");
+                return true;
+            } else {
+                //attempt to format the tag, tags must be formatted before writing
+                NdefFormatable format = NdefFormatable.get(tag);
+                //if not formatted
+                if(format != null){
+                    try{
+                        format.connect();
+                        format.format(ndefMessage);
+                        displayMessage("Tag formatted successfully!");
+                        return true;
+                    } catch (IOException e){
+                        displayMessage("Unable to format tag to NDEF.");
+                        return false;
+                    } catch (android.nfc.FormatException e){
+                        displayMessage("Unable to format tag to NDEF.");
+                        return false;
+                    }
+                    //if formated and not ndef then tag is unavailable for writing
+                } else {
+                    displayMessage("Tag doesn't appear to support NDEF format.");
+                    return false;
+                }
+            }
+        } catch (IOException e){
+            displayMessage("Input Output Exception");
+            return false;
+        } catch (android.nfc.FormatException e){
+            displayMessage("Formatting Exception");
+            return false;
+        }
+    }
+
+    public void displayMessage(String string){
+        Toast.makeText(getContext(), string, Toast.LENGTH_LONG).show();
+    }*/
 }
