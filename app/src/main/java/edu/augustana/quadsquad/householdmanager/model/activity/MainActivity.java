@@ -14,6 +14,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -51,6 +52,8 @@ import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
@@ -86,13 +89,10 @@ public class MainActivity extends AppCompatActivity
 
     String selectedMenu = "corkboard";
 
-    Boolean mInWriteMode = false;
-    GroupManagementFragment groupManagementFragment;
-    NfcAdapter adapter;
-    PendingIntent pendingIntent;
-    NdefMessage ndefMessage;
-    Context groupManagementFragmentContext;
-    Activity groupManagementFragmentActivity;
+    public static final String MIME_TEXT_PLAIN = "text/plain";
+    public static final String NfcTAG = "NfcDemo";
+
+    private NfcAdapter mNfcAdapter;
 
     Firebase mFirebase;
     FloatingActionButton fab;
@@ -103,7 +103,6 @@ public class MainActivity extends AppCompatActivity
             startActivity(newTodoIntent);
         }
     };
-
 
 
     private void postNote(String message) {
@@ -184,10 +183,8 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-
-
-        groupManagementFragment = new GroupManagementFragment();
-
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        handleIntent(getIntent());
     }
 
 
@@ -253,15 +250,14 @@ public class MainActivity extends AppCompatActivity
             startFindMyRoommates();
         } /*else if (id == R.id.nav_calendar) {
 
-        } */else if (id == R.id.nav_settings) {
+        } */ else if (id == R.id.nav_settings) {
 
         } else if (id == R.id.nav_group_management) {
             startGroupManagement();
 
         } else if (id == R.id.nav_logout) {
             signOut();
-        }
-        else if (id == R.id.nav_leavegroup) {
+        } else if (id == R.id.nav_leavegroup) {
             leaveGroup();
         }
 
@@ -369,8 +365,8 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 
-    private void leaveGroup(){
-        Context context=getApplicationContext();
+    private void leaveGroup() {
+        Context context = getApplicationContext();
         Firebase grpRef = mFirebase.child("groups").child(SaveSharedPreference.getPrefGroupId(context));
         Query qryRef = grpRef.child("members").orderByValue().equalTo(SaveSharedPreference.getGoogleEmail(context));
         qryRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -408,7 +404,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         SaveSharedPreference.setHasGroup(context, false);
-        SaveSharedPreference.setGroupId(context,"");
+        SaveSharedPreference.setGroupId(context, "");
         Intent intent = new Intent(this, GroupActivity.class);
         startActivity(intent);
         finish();
@@ -486,9 +482,172 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void startWriteNfc(){
-        Intent writeIntent = new Intent(MainActivity.this, NfcWriteActivity.class);
-        startActivity(writeIntent);
+    //START OF NFC READ ACTIVITY
+    private void handleIntent(Intent intent) {
+
+        String action = intent.getAction();
+
+        //Check for NFC Data Exchange Format
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
+            //Mime specifies the type of data being transferred over tag
+            String type = intent.getType();
+            if (MIME_TEXT_PLAIN.equals(type)) {
+                //EXTRA TAG creates a tag so that program doesn't need to continually check the physical tag
+                Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+                //.execute is inherited
+                new NdefReaderTask().execute(tag);
+            } else {
+                Log.d(TAG, "Wrong mime type: " + type);
+
+            }
+            //We shouldn't need this, but just in case
+        } else if (NfcAdapter.ACTION_TECH_DISCOVERED.equals(action)) {
+            // In case we would still use the Tech Discovered Intent
+            Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            String[] techList = tag.getTechList();
+            String searchedTech = Ndef.class.getName();
+
+            for (String tech : techList) {
+                if (searchedTech.equals(tech)) {
+                    new NdefReaderTask().execute(tag);
+                    break;
+                }
+
+
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        /**
+         * It's important, that the activity is in the foreground (resumed). Otherwise
+         * an IllegalStateException is thrown.
+         */
+        setupForegroundDispatch(this, mNfcAdapter);
+    }
+
+    @Override
+    protected void onPause() {
+        /**
+         * Call this before onPause, otherwise an IllegalArgumentException is thrown as well.
+         */
+        stopForegroundDispatch(this, mNfcAdapter);
+        super.onPause();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        /**
+         * This method gets called, when a new Intent gets associated with the current activity instance.
+         * Instead of creating a new activity, onNewIntent will be called. For more information have a look
+         * at the documentation.
+         *
+         * In our case this method gets called, when the user attaches a Tag to the device.
+         */
+        handleIntent(intent);
+    }
+/* This makes it so that once in the app, tags are only scanned when you want them
+   Code found at http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
+   Code should be the same for all apps that need this functionality
+ */
+
+    public static void setupForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
+        final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+
+        IntentFilter[] filters = new IntentFilter[1];
+        String[][] techList = new String[][]{};
+
+        // Notice that this is the same filter as in our manifest.
+        filters[0] = new IntentFilter();
+        filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        filters[0].addCategory(Intent.CATEGORY_DEFAULT);
+        try {
+            filters[0].addDataType(MIME_TEXT_PLAIN);
+        } catch (IntentFilter.MalformedMimeTypeException e) {
+            throw new RuntimeException("Check your mime type.");
+        }
+
+        adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
+    }
+
+    public static void stopForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
+        adapter.disableForegroundDispatch(activity);
+    }
+
+    //Where the real magic happens, also copied from
+//http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
+    private class NdefReaderTask extends AsyncTask<Tag, Void, String> {
+
+        @Override
+        protected String doInBackground(Tag... params) {
+            Tag tag = params[0];
+
+            Ndef ndef = Ndef.get(tag);
+            if (ndef == null) {
+                // NDEF is not supported by this Tag.
+                return null;
+            }
+
+            NdefMessage ndefMessage = ndef.getCachedNdefMessage();
+
+            NdefRecord[] records = ndefMessage.getRecords();
+            for (NdefRecord ndefRecord : records) {
+                if (ndefRecord.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(ndefRecord.getType(), NdefRecord.RTD_TEXT)) {
+                    try {
+                        return readText(ndefRecord);
+                    } catch (UnsupportedEncodingException e) {
+                        Log.e(TAG, "Unsupported Encoding", e);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private String readText(NdefRecord record) throws UnsupportedEncodingException {
+
+            // See NFC forum specification for "Text Record Type Definition" at 3.2.1
+            // Actualy definition of payload unclear. developer.android.com has the definition as:
+            // Payload: the actual payload
+
+            byte[] payload = record.getPayload();
+
+            String textEncoding;
+            if ((payload[0] & 128) == 0) {
+                textEncoding = "UTF-8";
+            } else {
+                textEncoding = "UTF-16";
+            }
+
+            // Get the Language Code
+            int languageCodeLength = payload[0] & 0063;
+
+            // Get the Text
+            return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
+        }
+
+        //Tag must be read before something can be done with the information
+        @Override
+        protected void onPostExecute(String result) {
+            //Checks to make sure text is in result
+            if (result != null) {
+                displayMessage(result);
+            } else {
+                displayMessage("Tag Empty");
+            }
+        }
+    }
+
+    private void displayMessage(String string) {
+        Toast.makeText(this, string, Toast.LENGTH_LONG).show();
     }
 }
+
+
 
