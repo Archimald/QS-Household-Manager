@@ -184,7 +184,9 @@ public class MainActivity extends AppCompatActivity
         }
 
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        handleIntent(getIntent());
+        if(mNfcAdapter != null) {
+            handleIntent(getIntent());
+        }
     }
 
 
@@ -528,7 +530,9 @@ public class MainActivity extends AppCompatActivity
          * It's important, that the activity is in the foreground (resumed). Otherwise
          * an IllegalStateException is thrown.
          */
-        setupForegroundDispatch(this, mNfcAdapter);
+        if(mNfcAdapter != null) {
+            setupForegroundDispatch(this, mNfcAdapter);
+        }
     }
 
     @TargetApi(21)
@@ -537,7 +541,9 @@ public class MainActivity extends AppCompatActivity
         /**
          * Call this before onPause, otherwise an IllegalArgumentException is thrown as well.
          */
-        stopForegroundDispatch(this, mNfcAdapter);
+        if(mNfcAdapter != null) {
+            stopForegroundDispatch(this, mNfcAdapter);
+        }
         super.onPause();
     }
 
@@ -642,8 +648,24 @@ public class MainActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(String result) {
             //Checks to make sure text is in result
+            Context ctx = getApplicationContext();
             if (result != null) {
                 displayMessage(result);
+
+                // code to switch the location in SharedPreferences using NFC tag
+                if(result.equals(SaveSharedPreference.getPrefGroupId(ctx))){
+                    if (SaveSharedPreference.getLocation(ctx)) {
+                        //the toggle is true
+                        SaveSharedPreference.setLocation(ctx, true);
+                        CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
+                        Picasso.with(ctx).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                    } else {
+                        // the toggle is false
+                        SaveSharedPreference.setLocation(ctx, false);
+                        CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
+                        Picasso.with(ctx).load(R.drawable.ic_away_24dp).fit().into(avatar);
+                    }
+                }
             } else {
                 displayMessage("Tag Empty");
             }

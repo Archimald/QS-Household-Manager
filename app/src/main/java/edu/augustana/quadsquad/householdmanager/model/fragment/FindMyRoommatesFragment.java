@@ -1,10 +1,13 @@
 package edu.augustana.quadsquad.householdmanager.model.fragment;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,6 +101,7 @@ public class FindMyRoommatesFragment extends Fragment {
     }
 
     @Override
+    @TargetApi(17)
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -108,18 +112,26 @@ public class FindMyRoommatesFragment extends Fragment {
         // manual location change
         // code adopted from http://developer.android.com/guide/topics/ui/controls/togglebutton.html
         Switch toggle = (Switch) getView().findViewById(R.id.toggleSwitch);
+
+        if(SaveSharedPreference.getLocation(getContext())){
+            toggle.toggle();
+        }
+
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked) {
+                if (isChecked) {
                     //the toggle is true
                     SaveSharedPreference.setLocation(getContext(), true);
+                    CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
+                    Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
                 } else {
                     // the toggle is false
                     SaveSharedPreference.setLocation(getContext(), false);
+                    CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
+                    Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
                 }
             }
         });
-
     }
 
     private void bindListViews() {
@@ -128,19 +140,20 @@ public class FindMyRoommatesFragment extends Fragment {
         Query memberQuery = memberRef.orderByChild("groupReferal").startAt(groupID).endAt(groupID);
 
         memberAdapter = new FirebaseListAdapter<Member>(getActivity(), Member.class, R.layout.avatar_list_item, memberQuery) {
+            @TargetApi(17)
             @Override
             protected void populateView(View view, Member member, int position) {
-
                 ((TextView) view.findViewById(R.id.name_view)).setText(member.getDisplayName());
 
 
-                String photoURL = member.getContactPicURI();
+                //String photoURL = member.getContactPicURI();
                 CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
 
-                if (!photoURL.equals("")) {
-                    Picasso.with(getContext()).load(photoURL).fit().into(avatar);
+                if (SaveSharedPreference.getLocation(getContext())) {
+                    Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                } else {
+                    Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
                 }
-
 
             }
         };

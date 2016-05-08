@@ -6,7 +6,7 @@
 
     <android.support.v7.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="445dp"
+        android:layout_height="364dp"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:layout_weight="1"
         android:orientation="vertical">
@@ -23,12 +23,18 @@
 
     <Switch
         android:layout_width="match_parent"
-        android:layout_height="58dp"
-        android:text="Manual: Home/Away"
+        android:layout_height="127dp"
+        android:text="@string/location_toggle"
         android:id="@+id/toggleSwitch"
         android:layout_gravity="center_horizontal|bottom"
-        android:textSize="18dp"
+        android:textSize="18sp"
         android:textOn="Home"
-        android:textOff="Away" />
+        android:textOff="Away"
+        android:switchMinWidth="100dp"
+        android:gravity="center_vertical|center_horizontal"
+        android:padding="15dp"
+        android:singleLine="false"
+        android:paddingEnd="50dp"
+        android:paddingRight="50dp"/>
 
 </FrameLayout>

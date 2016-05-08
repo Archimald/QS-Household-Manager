@@ -55,4 +55,6 @@
     <string name="corkboard_message_dummy">Test Message</string>
     <string name="from_dummy_name">Test McTester</string>
     <string name="delete_corkboard_card">Delete Note</string>
+
+    <string name="location_toggle">Change Current Location</string>
 </resources>
