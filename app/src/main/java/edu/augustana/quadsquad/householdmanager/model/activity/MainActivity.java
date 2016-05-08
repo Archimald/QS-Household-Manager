@@ -483,6 +483,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     //START OF NFC READ ACTIVITY
+    @TargetApi(21)
     private void handleIntent(Intent intent) {
 
         String action = intent.getAction();
@@ -519,6 +520,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    @TargetApi(21)
     protected void onResume() {
         super.onResume();
 
@@ -529,6 +531,7 @@ public class MainActivity extends AppCompatActivity
         setupForegroundDispatch(this, mNfcAdapter);
     }
 
+    @TargetApi(21)
     @Override
     protected void onPause() {
         /**
@@ -553,7 +556,7 @@ public class MainActivity extends AppCompatActivity
    Code found at http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
    Code should be the same for all apps that need this functionality
  */
-
+    @TargetApi(21)
     public static void setupForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
         final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -576,12 +579,14 @@ public class MainActivity extends AppCompatActivity
         adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
     }
 
+    @TargetApi(21)
     public static void stopForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
         adapter.disableForegroundDispatch(activity);
     }
 
     //Where the real magic happens, also copied from
 //http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
+    @TargetApi(21)
     private class NdefReaderTask extends AsyncTask<Tag, Void, String> {
 
         @Override
@@ -610,6 +615,7 @@ public class MainActivity extends AppCompatActivity
             return null;
         }
 
+        @TargetApi(21)
         private String readText(NdefRecord record) throws UnsupportedEncodingException {
 
             // See NFC forum specification for "Text Record Type Definition" at 3.2.1

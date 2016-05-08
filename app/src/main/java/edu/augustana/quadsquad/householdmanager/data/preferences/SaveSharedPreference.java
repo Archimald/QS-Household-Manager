@@ -23,6 +23,8 @@ public class SaveSharedPreference {
     static final String PREF_GROUP_ID ="Group ID";
     static final String PREF_HOUSE_NAME = "Housename";
 
+    static final String PREF_LOCATION_STATUS = "Location";
+
     static SharedPreferences getSharedPreferences(Context ctx) {
         return PreferenceManager.getDefaultSharedPreferences(ctx);
     }
@@ -75,6 +77,13 @@ public class SaveSharedPreference {
         editor.apply();
     }
 
+    // added for NFC
+    public static void setLocation(Context ctx, Boolean locationStatus) {
+        SharedPreferences.Editor editor = getSharedPreferences(ctx).edit();
+        editor.putBoolean(PREF_LOCATION_STATUS, locationStatus);
+        editor.apply();
+    }
+
     public static String getFirebaseUid(Context ctx) {
         return getSharedPreferences(ctx).getString(PREF_FIREBASE_UID, "");
     }
@@ -119,5 +128,11 @@ public class SaveSharedPreference {
         editor.clear(); // clear all stored data
         editor.apply();
     }*/
+
+
+    // added for NFC
+    public static Boolean getLocation(Context ctx){
+        return getSharedPreferences(ctx).getBoolean(PREF_LOCATION_STATUS, false);
+    }
 
 }

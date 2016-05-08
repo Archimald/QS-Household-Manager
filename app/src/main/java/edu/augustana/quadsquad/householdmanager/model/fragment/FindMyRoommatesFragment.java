@@ -8,8 +8,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import com.firebase.client.Firebase;
 import com.firebase.client.Query;
@@ -101,6 +104,22 @@ public class FindMyRoommatesFragment extends Fragment {
         membersList = (ListView) getView().findViewById(R.id.members_list_view);
 
         bindListViews();
+
+        // manual location change
+        // code adopted from http://developer.android.com/guide/topics/ui/controls/togglebutton.html
+        Switch toggle = (Switch) getView().findViewById(R.id.toggleSwitch);
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    //the toggle is true
+                    SaveSharedPreference.setLocation(getContext(), true);
+                } else {
+                    // the toggle is false
+                    SaveSharedPreference.setLocation(getContext(), false);
+                }
+            }
+        });
+
     }
 
     private void bindListViews() {

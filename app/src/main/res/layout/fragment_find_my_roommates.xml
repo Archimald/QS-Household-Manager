@@ -6,7 +6,7 @@
 
     <android.support.v7.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="445dp"
         android:layout_marginTop="@dimen/activity_vertical_margin"
         android:layout_weight="1"
         android:orientation="vertical">
@@ -20,5 +20,15 @@
         </ListView>
 
     </android.support.v7.widget.LinearLayoutCompat>
+
+    <Switch
+        android:layout_width="match_parent"
+        android:layout_height="58dp"
+        android:text="Manual: Home/Away"
+        android:id="@+id/toggleSwitch"
+        android:layout_gravity="center_horizontal|bottom"
+        android:textSize="18dp"
+        android:textOn="Home"
+        android:textOff="Away" />
 
 </FrameLayout>

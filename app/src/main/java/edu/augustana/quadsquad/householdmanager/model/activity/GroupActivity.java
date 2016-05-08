@@ -149,6 +149,8 @@ public class GroupActivity extends AppCompatActivity implements GoogleApiClient.
                                     SaveSharedPreference.setGroupId(ctx, newGroupReferralKey);
                                     SaveSharedPreference.setHouseName(ctx, newHouseName);
                                     SaveSharedPreference.setHasGroup(ctx, true);
+                                    // added for NFC
+                                    SaveSharedPreference.setLocation(ctx, false);
                                     Intent intent = new Intent(GroupActivity.this, MainActivity.class);
                                     startActivity(intent);
                                     finish();
