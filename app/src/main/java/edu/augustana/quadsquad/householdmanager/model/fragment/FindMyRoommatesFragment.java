@@ -101,7 +101,6 @@ public class FindMyRoommatesFragment extends Fragment {
     }
 
     @Override
-    @TargetApi(17)
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -119,15 +118,14 @@ public class FindMyRoommatesFragment extends Fragment {
 
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
+                CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
+                if (isChecked && avatar != null) {
                     //the toggle is true
                     SaveSharedPreference.setLocation(getContext(), true);
-                    CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
                     Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
                 } else {
                     // the toggle is false
                     SaveSharedPreference.setLocation(getContext(), false);
-                    CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
                     Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
                 }
             }
@@ -140,7 +138,6 @@ public class FindMyRoommatesFragment extends Fragment {
         Query memberQuery = memberRef.orderByChild("groupReferal").startAt(groupID).endAt(groupID);
 
         memberAdapter = new FirebaseListAdapter<Member>(getActivity(), Member.class, R.layout.avatar_list_item, memberQuery) {
-            @TargetApi(17)
             @Override
             protected void populateView(View view, Member member, int position) {
                 ((TextView) view.findViewById(R.id.name_view)).setText(member.getDisplayName());
@@ -149,9 +146,9 @@ public class FindMyRoommatesFragment extends Fragment {
                 //String photoURL = member.getContactPicURI();
                 CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
 
-                if (SaveSharedPreference.getLocation(getContext())) {
+                if (SaveSharedPreference.getLocation(getContext()) && avatar != null) {
                     Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
-                } else {
+                } else if (avatar != null) {
                     Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
                 }
 

@@ -653,8 +653,8 @@ public class MainActivity extends AppCompatActivity
                 displayMessage(result);
 
                 // code to switch the location in SharedPreferences using NFC tag
-                if(result.equals(SaveSharedPreference.getPrefGroupId(ctx))){
-                    if (SaveSharedPreference.getLocation(ctx)) {
+                //if(result.equals(SaveSharedPreference.getPrefGroupId(ctx))){
+                    if (!SaveSharedPreference.getLocation(ctx)) {
                         //the toggle is true
                         SaveSharedPreference.setLocation(ctx, true);
                         CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
@@ -665,7 +665,7 @@ public class MainActivity extends AppCompatActivity
                         CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
                         Picasso.with(ctx).load(R.drawable.ic_away_24dp).fit().into(avatar);
                     }
-                }
+                //}
             } else {
                 displayMessage("Tag Empty");
             }
