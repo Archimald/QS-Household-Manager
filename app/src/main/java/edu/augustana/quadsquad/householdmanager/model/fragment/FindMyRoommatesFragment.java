@@ -65,6 +65,7 @@ public class FindMyRoommatesFragment extends Fragment {
     public ListView membersList;
     private List<String> nfcMemberList = new ArrayList<>();
     private List<TextView> nfcTextViewList = new ArrayList<>();
+    public View rootView;
 
 
     private Firebase ref;
@@ -111,9 +112,13 @@ public class FindMyRoommatesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.fragment_find_my_roommates, container, false);
         // Inflate the layout for this fragment
-        membersList = (ListView) getView().findViewById(R.id.members_list_view);
-        return inflater.inflate(R.layout.fragment_find_my_roommates, container, false);
+        membersList = (ListView) rootView.findViewById(R.id.members_list_view);
+        /*Firebase.setAndroidContext(getContext());
+        ref = new Firebase("https://household-manager-136.firebaseio.com");
+        bindListViews();*/
+        return rootView;
     }
 
     @TargetApi(17)
@@ -121,13 +126,13 @@ public class FindMyRoommatesFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        membersList = (ListView) getView().findViewById(R.id.members_list_view);
+        membersList = (ListView) rootView.findViewById(R.id.members_list_view);
 
         bindListViews();
 
         // manual location change
         // code adopted from http://developer.android.com/guide/topics/ui/controls/togglebutton.html
-        Switch toggle = (Switch) getView().findViewById(R.id.toggleSwitch);
+        Switch toggle = (Switch) rootView.findViewById(R.id.toggleSwitch);
 
         if (SaveSharedPreference.getLocation(getContext())) {
             toggle.toggle();
@@ -151,7 +156,7 @@ public class FindMyRoommatesFragment extends Fragment {
                     tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
 
                 }*/
-                toggleLocation(membersList);
+                toggleLocation();
             }
         });
     }
@@ -245,10 +250,15 @@ public class FindMyRoommatesFragment extends Fragment {
     }
 
     @TargetApi(17)
-    public void toggleLocation(ListView list) {
+    public void toggleLocation() {
         /*String currentName = SaveSharedPreference.getGoogleDisplayName(ctx);
         int index = nfcMemberList.indexOf(currentName);
         TextView currentTV = nfcTextViewList.get(index);*/
+
+        if(membersList == null){
+            MainActivity mainActivity = new MainActivity();
+            membersList = mainActivity.getMemberList();
+        }
         if (membersList != null) {
             for (int i = 0; i < membersList.getChildCount(); i++) {
                 LinearLayout currentView = (LinearLayout) membersList.getChildAt(i);

@@ -2,6 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:tag="findMyRoommates"
+    android:id="@+id/findMyRoommates"
     tools:context="edu.augustana.quadsquad.householdmanager.model.fragment.FindMyRoommatesFragment">
 
     <android.support.v7.widget.LinearLayoutCompat

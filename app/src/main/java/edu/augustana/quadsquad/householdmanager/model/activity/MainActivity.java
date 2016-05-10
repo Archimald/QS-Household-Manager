@@ -2,6 +2,7 @@ package edu.augustana.quadsquad.householdmanager.model.activity;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -651,10 +652,34 @@ public class MainActivity extends AppCompatActivity
             //Checks to make sure text is in result
             Context ctx = getApplicationContext();
             if (result != null) {
-                displayMessage(result);
+                FindMyRoommatesFragment roommatesFragment = (FindMyRoommatesFragment) getSupportFragmentManager().findFragmentByTag("findMyRoommates");
+                if(roommatesFragment!= null){
+                    roommatesFragment.toggleLocation();
+                } else {
+                    FindMyRoommatesFragment newFragment = new FindMyRoommatesFragment();
+                    Bundle args = new Bundle();
+                    /*args.putInt(FindMyRoommatesFragment.ARG_POSITION, position);*/
+                    newFragment.setArguments(args);
 
-                FindMyRoommatesFragment roommatesFragment = new FindMyRoommatesFragment();
-                roommatesFragment.toggleLocation(memberList);
+                    android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    newFragment.toggleLocation();
+                    transaction.replace(R.id.rlContent, newFragment);
+                    transaction.addToBackStack(null);
+                    setTitle("Find My Roommates");
+                    fab.hide();
+                    transaction.commit();
+                    newFragment.toggleLocation();
+
+                }
+
+                /*displayMessage(result);*/
+
+/*
+                FindMyRoommatesFragment roommatesFragment = (FindMyRoommatesFragment) getSupportFragmentManager().findFragmentById(R.id.findMyRoommates);
+*/
+                /*FragmentManager manager = getSupportFragmentManager();
+                FindMyRoommatesFragment roommatesFragment = (FindMyRoommatesFragment) manager.findFragmentById(R.id.findMyRoommates);
+                roommatesFragment.toggleLocation();*/
 
                 /*TextView tv = (TextView) findViewById(R.id.name_view);
 
