@@ -34,6 +34,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -93,6 +94,7 @@ public class MainActivity extends AppCompatActivity
     public static final String NfcTAG = "NfcDemo";
 
     private NfcAdapter mNfcAdapter;
+    public ListView memberList;
 
     Firebase mFirebase;
     FloatingActionButton fab;
@@ -651,24 +653,26 @@ public class MainActivity extends AppCompatActivity
             if (result != null) {
                 displayMessage(result);
 
+                FindMyRoommatesFragment roommatesFragment = new FindMyRoommatesFragment();
+                roommatesFragment.toggleLocation(memberList);
 
-                TextView tv = (TextView) findViewById(R.id.name_view);
+                /*TextView tv = (TextView) findViewById(R.id.name_view);
 
                 // code to switch the location in SharedPreferences using NFC tag vb
                 //if(result.equals(SaveSharedPreference.getPrefGroupId(ctx))){
                     if (!SaveSharedPreference.getLocation(ctx)) {
                         //the toggle is true
                         SaveSharedPreference.setLocation(ctx, true);
-                        CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
-                        Picasso.with(ctx).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                        *//*CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
+                        Picasso.with(ctx).load(R.drawable.ic_home_24dp).fit().into(avatar);*//*
                         tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
                     } else {
                         // the toggle is false
                         SaveSharedPreference.setLocation(ctx, false);
-                        CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
-                        Picasso.with(ctx).load(R.drawable.ic_away_24dp).fit().into(avatar);
+                        *//*CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
+                        Picasso.with(ctx).load(R.drawable.ic_away_24dp).fit().into(avatar);*//*
                         tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
-                    }
+                    }*/
                 //}
             } else {
                 displayMessage("Tag Empty");
@@ -678,6 +682,14 @@ public class MainActivity extends AppCompatActivity
 
     public void displayMessage(String string) {
         Toast.makeText(this, string, Toast.LENGTH_LONG).show();
+    }
+
+    public void setMemberList(ListView list){
+        memberList = list;
+    }
+
+    public ListView getMemberList(){
+        return memberList;
     }
 }
 

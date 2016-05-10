@@ -2,16 +2,19 @@ package edu.augustana.quadsquad.householdmanager.model.fragment;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -23,6 +26,11 @@ import com.firebase.client.Query;
 import com.firebase.ui.FirebaseListAdapter;
 import com.firebase.ui.auth.core.FirebaseLoginBaseActivity;
 import com.squareup.picasso.Picasso;
+
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import edu.augustana.quadsquad.householdmanager.R;
@@ -54,7 +62,10 @@ public class FindMyRoommatesFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    private ListView membersList;
+    public ListView membersList;
+    private List<String> nfcMemberList = new ArrayList<>();
+    private List<TextView> nfcTextViewList = new ArrayList<>();
+
 
     private Firebase ref;
     private FirebaseListAdapter<Member> memberAdapter;
@@ -101,6 +112,7 @@ public class FindMyRoommatesFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        membersList = (ListView) getView().findViewById(R.id.members_list_view);
         return inflater.inflate(R.layout.fragment_find_my_roommates, container, false);
     }
 
@@ -117,13 +129,13 @@ public class FindMyRoommatesFragment extends Fragment {
         // code adopted from http://developer.android.com/guide/topics/ui/controls/togglebutton.html
         Switch toggle = (Switch) getView().findViewById(R.id.toggleSwitch);
 
-        if(SaveSharedPreference.getLocation(getContext())){
+        if (SaveSharedPreference.getLocation(getContext())) {
             toggle.toggle();
         }
 
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
+                /*CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
                 TextView tv = (TextView) getView().findViewById(R.id.name_view);
                 if (isChecked && avatar != null) {
                     //the toggle is true
@@ -138,7 +150,8 @@ public class FindMyRoommatesFragment extends Fragment {
                     Toast.makeText(getContext(), "Away", Toast.LENGTH_SHORT).show();
                     tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
 
-                }
+                }*/
+                toggleLocation(membersList);
             }
         });
     }
@@ -149,32 +162,46 @@ public class FindMyRoommatesFragment extends Fragment {
         String groupID = SaveSharedPreference.getPrefGroupId(getContext());
         Query memberQuery = memberRef.orderByChild("groupReferal").startAt(groupID).endAt(groupID);
 
+
         memberAdapter = new FirebaseListAdapter<Member>(getActivity(), Member.class, R.layout.avatar_list_item, memberQuery) {
             @Override
             protected void populateView(View view, Member member, int position) {
                 ((TextView) view.findViewById(R.id.name_view)).setText(member.getDisplayName());
-                TextView tv = (TextView) view.findViewById(R.id.name_view);
 
-                //String photoURL = member.getContactPicURI();
+                nfcMemberList.add(member.getDisplayName());
+
+                TextView tv = (TextView) view.findViewById(R.id.name_view);
+                nfcTextViewList.add(tv);
+
+                String photoURL = member.getContactPicURI();
                 CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
 
-                
-
-                if (SaveSharedPreference.getLocation(getContext()) && avatar != null) {
-                    Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
-                    tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0, R.drawable.ic_home_24dp,0);
-                    Toast.makeText(getContext(), "Home", Toast.LENGTH_SHORT).show();
-                } else if (avatar != null) {
-                    Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
-                    Toast.makeText(getContext(), "Away", Toast.LENGTH_SHORT).show();
-                    tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
-
+                if (member.getDisplayName().equals(SaveSharedPreference.getGoogleDisplayName(getContext()))) {
+                    if (SaveSharedPreference.getLocation(getContext()) && avatar != null) {
+                        //Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
+                        //Toast.makeText(getContext(), "Home", Toast.LENGTH_SHORT).show();
+                    } else if (avatar != null) {
+                        //Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
+                        //Toast.makeText(getContext(), "Away", Toast.LENGTH_SHORT).show();
+                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
+                    }
                 }
-
             }
         };
         membersList.setAdapter(memberAdapter);
+        MainActivity mainActivity = new MainActivity();
+        mainActivity.setMemberList(membersList);
         memberAdapter.notifyDataSetChanged();
+
+        //membersList.getItemAtPosition(0);
+
+        /*TextView tv = (TextView) membersList.getChildAt(0);
+        membersList.getChildCount();
+        if(tv.getText().equals(SaveSharedPreference.getGoogleDisplayName(getContext()))){
+
+            tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0,R.drawable.ic_home_24dp,0);
+        }*/
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -215,6 +242,30 @@ public class FindMyRoommatesFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @TargetApi(17)
+    public void toggleLocation(ListView list) {
+        /*String currentName = SaveSharedPreference.getGoogleDisplayName(ctx);
+        int index = nfcMemberList.indexOf(currentName);
+        TextView currentTV = nfcTextViewList.get(index);*/
+        if (membersList != null) {
+            for (int i = 0; i < membersList.getChildCount(); i++) {
+                LinearLayout currentView = (LinearLayout) membersList.getChildAt(i);
+                TextView currentTV = (TextView) currentView.getChildAt(1);
+                if (currentTV.getText().equals(SaveSharedPreference.getGoogleDisplayName(getContext()))) {
+                    if (SaveSharedPreference.getLocation(getContext())) {
+                        SaveSharedPreference.setLocation(getContext(), false);
+                        currentTV.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
+                    } else {
+                        SaveSharedPreference.setLocation(getContext(), true);
+                        currentTV.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
+                    }
+                }
+            }
+        } else{
+            Log.d(TAG,"membersList = null");
+        }
     }
 }
 
