@@ -15,6 +15,7 @@ import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.firebase.client.Firebase;
@@ -28,6 +29,7 @@ import edu.augustana.quadsquad.householdmanager.R;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Invite;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
 import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.model.activity.MainActivity;
 
 /*
  * A simple {@link Fragment} subclass.
@@ -91,6 +93,8 @@ public class FindMyRoommatesFragment extends Fragment {
 
         Firebase.setAndroidContext(getContext());
         ref = new Firebase("https://household-manager-136.firebaseio.com");
+
+        SaveSharedPreference.setLocation(getContext(), false);
     }
 
     @Override
@@ -100,6 +104,7 @@ public class FindMyRoommatesFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_find_my_roommates, container, false);
     }
 
+    @TargetApi(17)
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -119,19 +124,26 @@ public class FindMyRoommatesFragment extends Fragment {
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 CircleImageView avatar = (CircleImageView) getView().findViewById(R.id.avatar);
+                TextView tv = (TextView) getView().findViewById(R.id.name_view);
                 if (isChecked && avatar != null) {
                     //the toggle is true
                     SaveSharedPreference.setLocation(getContext(), true);
                     Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                    Toast.makeText(getContext(), "Home", Toast.LENGTH_SHORT).show();
+                    tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
                 } else {
                     // the toggle is false
                     SaveSharedPreference.setLocation(getContext(), false);
                     Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
+                    Toast.makeText(getContext(), "Away", Toast.LENGTH_SHORT).show();
+                    tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
+
                 }
             }
         });
     }
 
+    @TargetApi(17)
     private void bindListViews() {
         Firebase memberRef = ref.child("users");
         String groupID = SaveSharedPreference.getPrefGroupId(getContext());
@@ -141,15 +153,22 @@ public class FindMyRoommatesFragment extends Fragment {
             @Override
             protected void populateView(View view, Member member, int position) {
                 ((TextView) view.findViewById(R.id.name_view)).setText(member.getDisplayName());
-
+                TextView tv = (TextView) view.findViewById(R.id.name_view);
 
                 //String photoURL = member.getContactPicURI();
                 CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
 
+                
+
                 if (SaveSharedPreference.getLocation(getContext()) && avatar != null) {
                     Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                    tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0,0, R.drawable.ic_home_24dp,0);
+                    Toast.makeText(getContext(), "Home", Toast.LENGTH_SHORT).show();
                 } else if (avatar != null) {
                     Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
+                    Toast.makeText(getContext(), "Away", Toast.LENGTH_SHORT).show();
+                    tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
+
                 }
 
             }

@@ -522,7 +522,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    @TargetApi(21)
     protected void onResume() {
         super.onResume();
 
@@ -535,7 +534,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @TargetApi(21)
+
     @Override
     protected void onPause() {
         /**
@@ -652,18 +651,23 @@ public class MainActivity extends AppCompatActivity
             if (result != null) {
                 displayMessage(result);
 
-                // code to switch the location in SharedPreferences using NFC tag
+
+                TextView tv = (TextView) findViewById(R.id.name_view);
+
+                // code to switch the location in SharedPreferences using NFC tag vb
                 //if(result.equals(SaveSharedPreference.getPrefGroupId(ctx))){
                     if (!SaveSharedPreference.getLocation(ctx)) {
                         //the toggle is true
                         SaveSharedPreference.setLocation(ctx, true);
                         CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
                         Picasso.with(ctx).load(R.drawable.ic_home_24dp).fit().into(avatar);
+                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
                     } else {
                         // the toggle is false
                         SaveSharedPreference.setLocation(ctx, false);
                         CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
                         Picasso.with(ctx).load(R.drawable.ic_away_24dp).fit().into(avatar);
+                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
                     }
                 //}
             } else {
@@ -672,7 +676,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void displayMessage(String string) {
+    public void displayMessage(String string) {
         Toast.makeText(this, string, Toast.LENGTH_LONG).show();
     }
 }
