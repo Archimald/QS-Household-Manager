@@ -62,4 +62,8 @@
     <string name="quadsquad">QuadSquad</string>
     <string name="names1">Michael Currie, Luke Currie,</string>
     <string name="names2">Catherine Cross, Devon White</string>
+    <string name="n_n_nlibraries_used">\n\n\nLibraries Used:</string>
+    <string name="firebase_ui">Firebase-UI</string>
+    <string name="picasso">Picasso</string>
+    <string name="google_play_services">Google Play Services</string>
 </resources>
