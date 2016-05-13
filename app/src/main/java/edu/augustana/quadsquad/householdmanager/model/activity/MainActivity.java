@@ -1,8 +1,6 @@
 package edu.augustana.quadsquad.householdmanager.model.activity;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.FragmentTransaction;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +12,6 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
-import android.nfc.tech.NdefFormatable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -53,50 +50,40 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
 import edu.augustana.quadsquad.householdmanager.R;
-import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
-import edu.augustana.quadsquad.householdmanager.model.fragment.FindMyRoommatesFragment;
-import edu.augustana.quadsquad.householdmanager.model.fragment.ToDoFragment;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.CorkboardNote;
+import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
+import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
 import edu.augustana.quadsquad.householdmanager.model.fragment.CorkboardFragment;
+import edu.augustana.quadsquad.householdmanager.model.fragment.FindMyRoommatesFragment;
 import edu.augustana.quadsquad.householdmanager.model.fragment.GroupManagementFragment;
+import edu.augustana.quadsquad.householdmanager.model.fragment.ToDoFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
         GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener, ToDoFragment.OnFragmentInteractionListener, FindMyRoommatesFragment.OnFragmentInteractionListener {
 
 
+    public static final String MIME_TEXT_PLAIN = "text/plain";
+    public static final String NfcTAG = "NfcDemo";
     private static final String TAG = "Main Activity";
     private static final String KEY_STATE_TITLE = "kst";
     private static final String KEY_SELECTED_MENU = "ksm";
+    public ListView memberList;
     GoogleApiClient google_api_client;
     GoogleSignInOptions gso;
-
     ActionBarDrawerToggle toggle;
     DrawerLayout drawer;
-
     Fragment fragment = null;
     Class fragmentClass = null;
-
-
     CircleImageView profilePic;
     TextView user_name;
     TextView housename_txt;
-
     String selectedMenu = "corkboard";
-
-    public static final String MIME_TEXT_PLAIN = "text/plain";
-    public static final String NfcTAG = "NfcDemo";
-
-    private NfcAdapter mNfcAdapter;
-    public ListView memberList;
-
     Firebase mFirebase;
     FloatingActionButton fab;
     View.OnClickListener todoListener = new View.OnClickListener() {
@@ -106,7 +93,39 @@ public class MainActivity extends AppCompatActivity
             startActivity(newTodoIntent);
         }
     };
+    private NfcAdapter mNfcAdapter;
 
+    /* This makes it so that once in the app, tags are only scanned when you want them
+       Code found at http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
+       Code should be the same for all apps that need this functionality
+     */
+    @TargetApi(21)
+    public static void setupForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
+        final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
+
+        IntentFilter[] filters = new IntentFilter[1];
+        String[][] techList = new String[][]{};
+
+        // Notice that this is the same filter as in our manifest.
+        filters[0] = new IntentFilter();
+        filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
+        filters[0].addCategory(Intent.CATEGORY_DEFAULT);
+        try {
+            filters[0].addDataType(MIME_TEXT_PLAIN);
+        } catch (IntentFilter.MalformedMimeTypeException e) {
+            throw new RuntimeException("Check your mime type.");
+        }
+
+        adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
+    }
+
+    @TargetApi(21)
+    public static void stopForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
+        adapter.disableForegroundDispatch(activity);
+    }
 
     private void postNote(String message) {
         Context ctx = getApplicationContext();
@@ -191,7 +210,6 @@ public class MainActivity extends AppCompatActivity
             handleIntent(getIntent());
         }
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
@@ -537,13 +555,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
     @Override
     protected void onPause() {
         /**
          * Call this before onPause, otherwise an IllegalArgumentException is thrown as well.
          */
-        if(mNfcAdapter != null) {
+        if (mNfcAdapter != null) {
             stopForegroundDispatch(this, mNfcAdapter);
         }
         super.onPause();
@@ -560,36 +577,17 @@ public class MainActivity extends AppCompatActivity
          */
         handleIntent(intent);
     }
-/* This makes it so that once in the app, tags are only scanned when you want them
-   Code found at http://code.tutsplus.com/tutorials/reading-nfc-tags-with-android--mobile-17278
-   Code should be the same for all apps that need this functionality
- */
-    @TargetApi(21)
-    public static void setupForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
-        final Intent intent = new Intent(activity.getApplicationContext(), activity.getClass());
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-        final PendingIntent pendingIntent = PendingIntent.getActivity(activity.getApplicationContext(), 0, intent, 0);
-
-        IntentFilter[] filters = new IntentFilter[1];
-        String[][] techList = new String[][]{};
-
-        // Notice that this is the same filter as in our manifest.
-        filters[0] = new IntentFilter();
-        filters[0].addAction(NfcAdapter.ACTION_NDEF_DISCOVERED);
-        filters[0].addCategory(Intent.CATEGORY_DEFAULT);
-        try {
-            filters[0].addDataType(MIME_TEXT_PLAIN);
-        } catch (IntentFilter.MalformedMimeTypeException e) {
-            throw new RuntimeException("Check your mime type.");
-        }
-
-        adapter.enableForegroundDispatch(activity, pendingIntent, filters, techList);
+    public void displayMessage(String string) {
+        Toast.makeText(this, string, Toast.LENGTH_LONG).show();
     }
 
-    @TargetApi(21)
-    public static void stopForegroundDispatch(final AppCompatActivity activity, NfcAdapter adapter) {
-        adapter.disableForegroundDispatch(activity);
+    public ListView getMemberList() {
+        return memberList;
+    }
+
+    public void setMemberList(ListView list){
+        memberList = list;
     }
 
     //Where the real magic happens, also copied from
@@ -651,70 +649,45 @@ public class MainActivity extends AppCompatActivity
         protected void onPostExecute(String result) {
             //Checks to make sure text is in result
             Context ctx = getApplicationContext();
-            if (result != null) {
-                FindMyRoommatesFragment roommatesFragment = (FindMyRoommatesFragment) getSupportFragmentManager().findFragmentByTag("findMyRoommates");
-                if(roommatesFragment!= null){
-                    roommatesFragment.toggleLocation();
+            if (result.equals(SaveSharedPreference.getPrefGroupId(ctx))) {
+                boolean currentStatus = SaveSharedPreference.getLocation(ctx);
+                SaveSharedPreference.setLocation(ctx, !currentStatus);
+                final boolean newStatus = !currentStatus;
+                if (newStatus) {
+                    Toast.makeText(ctx, "You are now home.",
+                            Toast.LENGTH_SHORT).show();
                 } else {
-                    FindMyRoommatesFragment newFragment = new FindMyRoommatesFragment();
-                    Bundle args = new Bundle();
-                    /*args.putInt(FindMyRoommatesFragment.ARG_POSITION, position);*/
-                    newFragment.setArguments(args);
-
-                    android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    newFragment.toggleLocation();
-                    transaction.replace(R.id.rlContent, newFragment);
-                    transaction.addToBackStack(null);
-                    setTitle("Find My Roommates");
-                    fab.hide();
-                    transaction.commit();
-                    newFragment.toggleLocation();
-
+                    Toast.makeText(ctx, "You are now away.",
+                            Toast.LENGTH_SHORT).show();
                 }
 
-                /*displayMessage(result);*/
+                Firebase mFirebase = new Firebase("https://household-manager-136.firebaseio.com");
+                Query userQuery = mFirebase.child("users").orderByChild("email").equalTo(SaveSharedPreference.getGoogleEmail(ctx));
+                userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.hasChildren()) {
+                            DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                            Firebase userRef = firstChild.getRef();
+                            if (newStatus) {
+                                userRef.child("locationStatus").setValue("Home");
+                            } else {
+                                userRef.child("locationStatus").setValue("Away");
+                            }
 
-/*
-                FindMyRoommatesFragment roommatesFragment = (FindMyRoommatesFragment) getSupportFragmentManager().findFragmentById(R.id.findMyRoommates);
-*/
-                /*FragmentManager manager = getSupportFragmentManager();
-                FindMyRoommatesFragment roommatesFragment = (FindMyRoommatesFragment) manager.findFragmentById(R.id.findMyRoommates);
-                roommatesFragment.toggleLocation();*/
+                        }
+                    }
 
-                /*TextView tv = (TextView) findViewById(R.id.name_view);
+                    @Override
+                    public void onCancelled(FirebaseError firebaseError) {
 
-                // code to switch the location in SharedPreferences using NFC tag vb
-                //if(result.equals(SaveSharedPreference.getPrefGroupId(ctx))){
-                    if (!SaveSharedPreference.getLocation(ctx)) {
-                        //the toggle is true
-                        SaveSharedPreference.setLocation(ctx, true);
-                        *//*CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
-                        Picasso.with(ctx).load(R.drawable.ic_home_24dp).fit().into(avatar);*//*
-                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
-                    } else {
-                        // the toggle is false
-                        SaveSharedPreference.setLocation(ctx, false);
-                        *//*CircleImageView avatar = (CircleImageView) findViewById(R.id.avatar);
-                        Picasso.with(ctx).load(R.drawable.ic_away_24dp).fit().into(avatar);*//*
-                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
-                    }*/
-                //}
+                    }
+                });
+
             } else {
-                displayMessage("Tag Empty");
+                displayMessage("Invalid Tag");
             }
         }
-    }
-
-    public void displayMessage(String string) {
-        Toast.makeText(this, string, Toast.LENGTH_LONG).show();
-    }
-
-    public void setMemberList(ListView list){
-        memberList = list;
-    }
-
-    public ListView getMemberList(){
-        return memberList;
     }
 }
 

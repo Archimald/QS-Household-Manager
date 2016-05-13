@@ -9,6 +9,7 @@ public class Member {
     protected String contactPicURI;
     protected String email;
     protected String groupReferal;
+    protected String locationStatus;
 
     public Member() {
 
@@ -21,6 +22,7 @@ public class Member {
         this.email = email;
         this.groupReferal = groupReferal;
         this.contactPicURI = contactPicURI;
+        this.locationStatus = "Away";
     }
 
     public Member(String displayName, String provider, String contactPicURI, String email) {
@@ -29,6 +31,7 @@ public class Member {
         this.email = email;
         this.groupReferal = "";
         this.contactPicURI = contactPicURI;
+        this.locationStatus = "Away";
     }
 
     public String getDisplayName() {
@@ -49,5 +52,9 @@ public class Member {
 
     public String getGroupReferal() {
         return groupReferal;
+    }
+
+    public String getLocationStatus() {
+        return locationStatus;
     }
 }

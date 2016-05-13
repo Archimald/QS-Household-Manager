@@ -2,32 +2,28 @@ package edu.augustana.quadsquad.householdmanager.model.fragment;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.firebase.client.Query;
+import com.firebase.client.ValueEventListener;
 import com.firebase.ui.FirebaseListAdapter;
-import com.firebase.ui.auth.core.FirebaseLoginBaseActivity;
 import com.squareup.picasso.Picasso;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,20 +50,14 @@ public class FindMyRoommatesFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private final String TAG = "findMyRoommates";
-
-
+    public ListView membersList;
+    public View rootView;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
     private OnFragmentInteractionListener mListener;
-
-    public ListView membersList;
     private List<String> nfcMemberList = new ArrayList<>();
     private List<TextView> nfcTextViewList = new ArrayList<>();
-    public View rootView;
-
-
     private Firebase ref;
     private FirebaseListAdapter<Member> memberAdapter;
     private FirebaseListAdapter<Invite> inviteAdapter;
@@ -105,8 +95,6 @@ public class FindMyRoommatesFragment extends Fragment {
 
         Firebase.setAndroidContext(getContext());
         ref = new Firebase("https://household-manager-136.firebaseio.com");
-
-        SaveSharedPreference.setLocation(getContext(), false);
     }
 
     @Override
@@ -134,9 +122,9 @@ public class FindMyRoommatesFragment extends Fragment {
         // code adopted from http://developer.android.com/guide/topics/ui/controls/togglebutton.html
         Switch toggle = (Switch) rootView.findViewById(R.id.toggleSwitch);
 
-        if (SaveSharedPreference.getLocation(getContext())) {
-            toggle.toggle();
-        }
+
+        toggle.setChecked(SaveSharedPreference.getLocation(getContext()));
+        Log.d("locationStatus", String.format("%b", SaveSharedPreference.getLocation(getContext())));
 
         toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -163,34 +151,31 @@ public class FindMyRoommatesFragment extends Fragment {
 
     @TargetApi(17)
     private void bindListViews() {
+        Context ctx = getContext();
         Firebase memberRef = ref.child("users");
         String groupID = SaveSharedPreference.getPrefGroupId(getContext());
         Query memberQuery = memberRef.orderByChild("groupReferal").startAt(groupID).endAt(groupID);
 
 
-        memberAdapter = new FirebaseListAdapter<Member>(getActivity(), Member.class, R.layout.avatar_list_item, memberQuery) {
+        memberAdapter = new FirebaseListAdapter<Member>(getActivity(), Member.class, R.layout.avatar_status_list_item, memberQuery) {
             @Override
             protected void populateView(View view, Member member, int position) {
                 ((TextView) view.findViewById(R.id.name_view)).setText(member.getDisplayName());
 
-                nfcMemberList.add(member.getDisplayName());
-
-                TextView tv = (TextView) view.findViewById(R.id.name_view);
-                nfcTextViewList.add(tv);
 
                 String photoURL = member.getContactPicURI();
                 CircleImageView avatar = (CircleImageView) view.findViewById(R.id.avatar);
 
-                if (member.getDisplayName().equals(SaveSharedPreference.getGoogleDisplayName(getContext()))) {
-                    if (SaveSharedPreference.getLocation(getContext()) && avatar != null) {
-                        //Picasso.with(getContext()).load(R.drawable.ic_home_24dp).fit().into(avatar);
-                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
-                        //Toast.makeText(getContext(), "Home", Toast.LENGTH_SHORT).show();
-                    } else if (avatar != null) {
-                        //Picasso.with(getContext()).load(R.drawable.ic_away_24dp).fit().into(avatar);
-                        //Toast.makeText(getContext(), "Away", Toast.LENGTH_SHORT).show();
-                        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
-                    }
+                if (!photoURL.equals("")) {
+                    Picasso.with(getContext()).load(photoURL).fit().into(avatar);
+                }
+
+                ImageView locationStatusImg = (ImageView) view.findViewById(R.id.statusImg);
+
+                if (member.getLocationStatus().equals("Home")) {
+                    locationStatusImg.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_home_24dp));
+                } else {
+                    locationStatusImg.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.ic_away_24dp));
                 }
             }
         };
@@ -243,39 +228,50 @@ public class FindMyRoommatesFragment extends Fragment {
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.*/
 
-
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
-
     @TargetApi(17)
     public void toggleLocation() {
         /*String currentName = SaveSharedPreference.getGoogleDisplayName(ctx);
         int index = nfcMemberList.indexOf(currentName);
         TextView currentTV = nfcTextViewList.get(index);*/
+        Context ctx = getContext();
+        final boolean newStatus = !SaveSharedPreference.getLocation(ctx);
 
-        if(membersList == null){
-            MainActivity mainActivity = new MainActivity();
-            membersList = mainActivity.getMemberList();
-        }
-        if (membersList != null) {
-            for (int i = 0; i < membersList.getChildCount(); i++) {
-                LinearLayout currentView = (LinearLayout) membersList.getChildAt(i);
-                TextView currentTV = (TextView) currentView.getChildAt(1);
-                if (currentTV.getText().equals(SaveSharedPreference.getGoogleDisplayName(getContext()))) {
-                    if (SaveSharedPreference.getLocation(getContext())) {
-                        SaveSharedPreference.setLocation(getContext(), false);
-                        currentTV.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_away_24dp, 0);
+        Firebase mFirebase = new Firebase("https://household-manager-136.firebaseio.com");
+        Query userQuery = mFirebase.child("users").orderByChild("email").equalTo(SaveSharedPreference.getGoogleEmail(ctx));
+        userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChildren()) {
+                    DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
+                    Firebase userRef = firstChild.getRef();
+                    if (newStatus) {
+                        userRef.child("locationStatus").setValue("Home");
                     } else {
-                        SaveSharedPreference.setLocation(getContext(), true);
-                        currentTV.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_home_24dp, 0);
+                        userRef.child("locationStatus").setValue("Away");
                     }
+
                 }
             }
-        } else{
-            Log.d(TAG,"membersList = null");
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+        SaveSharedPreference.setLocation(ctx, newStatus);
+        if (newStatus) {
+            Toast.makeText(ctx, "You are now home.",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(ctx, "You are now away.",
+                    Toast.LENGTH_SHORT).show();
         }
+
+    }
+
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(Uri uri);
     }
 }
 
