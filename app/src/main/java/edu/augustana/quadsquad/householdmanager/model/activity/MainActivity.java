@@ -58,14 +58,18 @@ import edu.augustana.quadsquad.householdmanager.R;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.CorkboardNote;
 import edu.augustana.quadsquad.householdmanager.data.firebaseobjects.Member;
 import edu.augustana.quadsquad.householdmanager.data.preferences.SaveSharedPreference;
+import edu.augustana.quadsquad.householdmanager.model.fragment.AboutFragment;
 import edu.augustana.quadsquad.householdmanager.model.fragment.CorkboardFragment;
 import edu.augustana.quadsquad.householdmanager.model.fragment.FindMyRoommatesFragment;
 import edu.augustana.quadsquad.householdmanager.model.fragment.GroupManagementFragment;
 import edu.augustana.quadsquad.householdmanager.model.fragment.ToDoFragment;
 
+/**
+ *
+ */
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener,
-        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener, ToDoFragment.OnFragmentInteractionListener, FindMyRoommatesFragment.OnFragmentInteractionListener {
+        GroupManagementFragment.OnFragmentInteractionListener, CorkboardFragment.OnFragmentInteractionListener, ToDoFragment.OnFragmentInteractionListener, FindMyRoommatesFragment.OnFragmentInteractionListener, AboutFragment.OnFragmentInteractionListener {
 
 
     public static final String MIME_TEXT_PLAIN = "text/plain";
@@ -273,7 +277,8 @@ public class MainActivity extends AppCompatActivity
             startFindMyRoommates();
         } /*else if (id == R.id.nav_calendar) {
 
-        } */ else if (id == R.id.nav_settings) {
+        } */ else if (id == R.id.nav_about) {
+            startAbout();
 
         } else if (id == R.id.nav_group_management) {
             startGroupManagement();
@@ -346,6 +351,15 @@ public class MainActivity extends AppCompatActivity
 
         startFragment();
         setTitle("Find My Roomates");
+    }
+
+    private void startAbout() {
+        fragmentClass = AboutFragment.class;
+        fab.hide();
+        selectedMenu = "About";
+
+        startFragment();
+        setTitle("About");
     }
 
     private void buildNewGoogleApiClient() {

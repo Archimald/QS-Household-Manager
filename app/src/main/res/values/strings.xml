@@ -57,4 +57,9 @@
     <string name="delete_corkboard_card">Delete Note</string>
 
     <string name="location_toggle">Change Current Location</string>
+    <string name="about">About</string>
+    <string name="abouttxt">About</string>
+    <string name="quadsquad">QuadSquad</string>
+    <string name="names1">Michael Currie, Luke Currie,</string>
+    <string name="names2">Catherine Cross, Devon White</string>
 </resources>
